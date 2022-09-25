@@ -1,0 +1,58 @@
+{
+  "name": "datocms-plugin-frontify-asset-source",
+  "version": "0.1.0",
+  "private": true,
+  "keywords": [
+    "datocms-plugin",
+    "frontify"
+  ],
+  "description": "Insert photos from your Frontify Account directly inside of your DatoCMS project",
+  "dependencies": {
+    "@types/node": "^18.7.21",
+    "@types/react": "^18.0.21",
+    "@types/react-dom": "^18.0.6",
+    "datocms-plugin-sdk": "^0.6.4",
+    "datocms-react-ui": "^0.6.4",
+    "final-form": "^4.20.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-final-form": "^6.5.9",
+    "react-scripts": "5.0.1",
+    "typescript": "^4.8.3",
+    "urql": "^3.0.3"
+  },
+  "scripts": {
+    "start": "cross-env BROWSER='none' PUBLIC_URL='/' react-scripts start",
+    "build": "cross-env PUBLIC_URL='.' react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "prepublishOnly": "npm run build"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  },
+  "datoCmsPlugin": {
+    "title": "Asset source for Frontify",
+    "previewImage": "",
+    "coverImage": "docs/cover.jpg",
+    "entryPoint": "build/index.html",
+    "permissions": []
+  }
+}
