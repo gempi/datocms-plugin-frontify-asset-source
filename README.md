@@ -8,4 +8,4 @@ Insert photos from your Frontify Account directly inside of your DatoCMS project
 
 ## Generate access token
 
-You can generate an access token here: https://yourDomain.frontify.com/api/oauth-access-token/show
+Generate an access token with `basic:read` access here: https://yourDomain.frontify.com/api/oauth-access-token/show

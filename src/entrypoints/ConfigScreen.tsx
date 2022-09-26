@@ -58,6 +58,9 @@ export default function ConfigScreen({ ctx }: Props) {
                     placeholder="Access Token"
                     required
                     error={error}
+                    textInputProps={{
+                      type: "password",
+                    }}
                     {...input}
                   />
                 )}
