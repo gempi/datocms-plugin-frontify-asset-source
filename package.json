@@ -50,8 +50,8 @@
   },
   "datoCmsPlugin": {
     "title": "Asset source for Frontify",
-    "previewImage": "",
-    "coverImage": "docs/cover.jpg",
+    "previewImage": "docs/preview.mp4",
+    "coverImage": "docs/cover.png",
     "entryPoint": "build/index.html",
     "permissions": []
   }
