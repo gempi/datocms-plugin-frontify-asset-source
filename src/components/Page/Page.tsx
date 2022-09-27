@@ -1,41 +1,10 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { useContext, useEffect } from "react";
 import { useQuery } from "urql";
-import styles from "./Page.module.css";
 import { AppContext } from "../../AppContext";
+import { BrandLevelSearchQuery } from "../../lib/queries";
 
-const BrandLevelSearch = `
-  query BrandLevelSearch($id: ID!, $limit: Int, $page: Int, $term: String) {
-    brand(id: $id) {
-        search(limit: $limit, page: $page, query: {
-          term: $term
-        }) {
-            hasNextPage
-            page
-            total
-            items {
-              __typename
-              ... on Image {
-                    id
-                    title
-                    description
-                    filename
-                    downloadUrl
-                    previewUrl(width: 500, height: 500)
-                    author
-                    tags {
-                        value
-                    }
-                    copyright {
-                        status
-                        notice
-                    }
-                }
-            }
-        }
-      }
-  }
-`;
+import styles from "./Page.module.css";
 
 type PageProps = {
   ctx: RenderAssetSourceCtx;
@@ -47,7 +16,7 @@ type PageProps = {
 function Page({ ctx, brand, variables, searchTerm }: PageProps) {
   const { setHasMore, setLoading } = useContext(AppContext);
   const [{ data }] = useQuery({
-    query: BrandLevelSearch,
+    query: BrandLevelSearchQuery,
     pause: !brand,
     variables: {
       id: brand?.id,

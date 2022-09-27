@@ -5,6 +5,7 @@ import { useQuery } from "urql";
 import { AppContext } from "../../AppContext";
 import { useRef } from "react";
 import Page from "../Page/Page";
+import { BrandsQuery } from "../../lib/queries";
 
 interface Brand {
   id: string;
@@ -14,15 +15,6 @@ interface Brand {
 interface BrandsData {
   brands: Brand[];
 }
-
-const BrandsQuery = `
-  query {
-    brands {
-        id
-        name
-      }
-  }
-`;
 
 type AssetBrowserProps = {
   ctx: RenderAssetSourceCtx;
