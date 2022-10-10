@@ -5,7 +5,6 @@ import "datocms-react-ui/styles.css";
 import AssetBrowser from "./components/AssetBrowser/AssetBrowser";
 import { createClient, Provider } from "urql";
 import AppProvider from "./AppContext";
-import { useEffect } from "react";
 
 connect({
   renderConfigScreen(ctx) {
