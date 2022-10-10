@@ -1,83 +1,89 @@
 import { RenderConfigScreenCtx } from "datocms-plugin-sdk";
-import { Canvas, Button, TextField, Form, FieldGroup } from "datocms-react-ui";
-import { Form as FormHandler, Field } from "react-final-form";
+import { Canvas, Button } from "datocms-react-ui";
+import {
+  authorize,
+  Token,
+  revoke,
+  refresh,
+} from "@frontify/frontify-authenticator";
 
 type Props = {
   ctx: RenderConfigScreenCtx;
 };
 
 export type ValidParameters = {
-  accessToken: string;
-  domain: string;
+  token: Token;
 };
 
-type Parameters = ValidParameters;
-
 export default function ConfigScreen({ ctx }: Props) {
+  const parameters = ctx.plugin.attributes.parameters as ValidParameters;
+  const token: Token = parameters.token;
+
   return (
     <Canvas ctx={ctx}>
-      <FormHandler<Parameters>
-        initialValues={ctx.plugin.attributes.parameters}
-        validate={(values) => {
-          const errors: Record<string, string> = {};
-          if (!values.accessToken) {
-            errors.accessToken = "This field is required!";
-          }
-          if (!values.domain) {
-            errors.domain = "This field is required!";
-          }
-          return errors;
-        }}
-        onSubmit={async (values) => {
-          await ctx.updatePluginParameters(values);
-          ctx.notice("Settings updated successfully!");
-        }}
-      >
-        {({ handleSubmit, submitting, dirty }) => (
-          <Form onSubmit={handleSubmit}>
-            <FieldGroup>
-              <Field name="domain">
-                {({ input, meta: { error } }) => (
-                  <TextField
-                    hint="Your Frontify Domain, e.g. https://datocms.frontify.com"
-                    id="domain"
-                    label="Domain"
-                    placeholder="Domain"
-                    required
-                    error={error}
-                    {...input}
-                  />
-                )}
-              </Field>
-              <Field name="accessToken">
-                {({ input, meta: { error } }) => (
-                  <TextField
-                    hint="Your Frontify Access Token (You can generate it here: https://{yourDomain}.frontify.com/api/oauth-access-token/show)"
-                    id="accessToken"
-                    label="Access Token"
-                    placeholder="Access Token"
-                    required
-                    error={error}
-                    textInputProps={{
-                      type: "password",
-                    }}
-                    {...input}
-                  />
-                )}
-              </Field>
-            </FieldGroup>
-            <Button
-              type="submit"
-              fullWidth
-              buttonSize="l"
-              buttonType="primary"
-              disabled={submitting || !dirty}
-            >
-              Save settings
-            </Button>
-          </Form>
+      <>
+        {token ? (
+          <>
+            <div style={{ marginBottom: "24px" }}>
+              <b>Authorized Domain:</b> {token?.bearerToken?.domain}
+            </div>
+
+            <div style={{ marginBottom: "24px" }}>
+              <Button
+                type="submit"
+                fullWidth
+                buttonSize="l"
+                buttonType="primary"
+                onClick={async () => {
+                  const newToken = await refresh(token);
+
+                  ctx.updatePluginParameters({
+                    token: newToken,
+                  });
+                }}
+              >
+                Refresh token
+              </Button>
+            </div>
+            <div>
+              <Button
+                type="submit"
+                fullWidth
+                buttonSize="l"
+                buttonType="primary"
+                onClick={async () => {
+                  await revoke(token);
+
+                  ctx.updatePluginParameters({
+                    token: null,
+                  });
+                }}
+              >
+                Revoke access
+              </Button>
+            </div>
+          </>
+        ) : (
+          <Button
+            type="submit"
+            fullWidth
+            buttonSize="l"
+            buttonType="primary"
+            onClick={async () => {
+              const newToken: Token = await authorize({
+                clientId: "dato-cms",
+                scopes: ["basic:read"],
+              });
+
+              ctx.updatePluginParameters({
+                token: newToken,
+              });
+            }}
+          >
+            Authorize
+          </Button>
         )}
-      </FormHandler>
+      </>
     </Canvas>
   );
 }

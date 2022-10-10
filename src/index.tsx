@@ -29,11 +29,11 @@ connect({
   },
   renderAssetSource(sourceId: string, ctx: RenderAssetSourceCtx) {
     const parameters = ctx.plugin.attributes.parameters as ValidParameters;
-    const domain = parameters.domain;
-    const accessToken = parameters.accessToken;
+    const domain = parameters.token.bearerToken.domain;
+    const accessToken = parameters.token.bearerToken.accessToken;
 
     const client = createClient({
-      url: `${domain}/graphql`,
+      url: `https://${domain}/graphql`,
       fetchOptions: () => {
         return {
           headers: {
