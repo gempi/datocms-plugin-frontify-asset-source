@@ -70,14 +70,19 @@ export default function ConfigScreen({ ctx }: Props) {
             buttonSize="l"
             buttonType="primary"
             onClick={async () => {
-              const newToken: Token = await authorize({
-                clientId: "dato-cms",
-                scopes: ["basic:read"],
-              });
+              try {
+                const newToken: Token = await authorize({
+                  clientId: "dato-cms",
+                  scopes: ["basic:read"],
+                });
 
-              ctx.updatePluginParameters({
-                token: newToken,
-              });
+                ctx.updatePluginParameters({
+                  token: newToken,
+                });
+                ctx.notice("You logged in successfully");
+              } catch (err) {
+                ctx.alert("Something went wrong");
+              }
             }}
           >
             Authorize

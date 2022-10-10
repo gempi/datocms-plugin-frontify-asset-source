@@ -5,6 +5,7 @@ import "datocms-react-ui/styles.css";
 import AssetBrowser from "./components/AssetBrowser/AssetBrowser";
 import { createClient, Provider } from "urql";
 import AppProvider from "./AppContext";
+import { useEffect } from "react";
 
 connect({
   renderConfigScreen(ctx) {
@@ -29,8 +30,13 @@ connect({
   },
   renderAssetSource(sourceId: string, ctx: RenderAssetSourceCtx) {
     const parameters = ctx.plugin.attributes.parameters as ValidParameters;
-    const domain = parameters.token.bearerToken.domain;
-    const accessToken = parameters.token.bearerToken.accessToken;
+    const domain = parameters.token?.bearerToken?.domain;
+    const accessToken = parameters.token?.bearerToken?.accessToken;
+
+    if (!accessToken || !domain) {
+      ctx.alert("Please check your plugin settings!");
+      return null;
+    }
 
     const client = createClient({
       url: `https://${domain}/graphql`,
