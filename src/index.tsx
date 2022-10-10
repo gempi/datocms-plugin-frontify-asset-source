@@ -10,11 +10,7 @@ connect({
   renderConfigScreen(ctx) {
     return render(<ConfigScreen ctx={ctx} />);
   },
-  assetSources(ctx) {
-    const parameters = ctx.plugin.attributes.parameters as ValidParameters;
-
-    if (!parameters.token) return [];
-
+  assetSources() {
     return [
       {
         id: "frontify",
@@ -31,10 +27,15 @@ connect({
       },
     ];
   },
-  renderAssetSource(_: string, ctx: RenderAssetSourceCtx) {
+  renderAssetSource(sourceId: string, ctx: RenderAssetSourceCtx) {
     const parameters = ctx.plugin.attributes.parameters as ValidParameters;
     const domain = parameters.token?.bearerToken?.domain;
     const accessToken = parameters.token?.bearerToken?.accessToken;
+
+    if (!accessToken || !domain) {
+      ctx.alert("Please check your plugin settings!");
+      return null;
+    }
 
     const client = createClient({
       url: `https://${domain}/graphql`,
