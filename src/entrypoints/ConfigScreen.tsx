@@ -35,11 +35,19 @@ export default function ConfigScreen({ ctx }: Props) {
                 buttonSize="l"
                 buttonType="primary"
                 onClick={async () => {
-                  const newToken = await refresh(token);
+                  try {
+                    const newToken = await refresh(token);
 
-                  ctx.updatePluginParameters({
-                    token: newToken,
-                  });
+                    ctx.updatePluginParameters({
+                      token: newToken,
+                    });
+                    ctx.notice("Successfully received a new token!");
+                  } catch (err) {
+                    ctx.updatePluginParameters({
+                      token: null,
+                    });
+                    ctx.notice("Something went wrong. Please login again!");
+                  }
                 }}
               >
                 Refresh token
@@ -52,11 +60,16 @@ export default function ConfigScreen({ ctx }: Props) {
                 buttonSize="l"
                 buttonType="primary"
                 onClick={async () => {
-                  await revoke(token);
+                  try {
+                    await revoke(token);
 
-                  ctx.updatePluginParameters({
-                    token: null,
-                  });
+                    ctx.updatePluginParameters({
+                      token: null,
+                    });
+                    ctx.notice("Successfully revoked your token!");
+                  } catch (err) {
+                    ctx.notice("Something went wrong.");
+                  }
                 }}
               >
                 Revoke access
