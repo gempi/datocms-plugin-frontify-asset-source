@@ -1,7 +1,6 @@
 {
   "name": "datocms-plugin-frontify-asset-source",
   "version": "0.0.9",
-  "private": true,
   "homepage": "https://github.com/gempi/datocms-plugin-frontify-asset-source#readme",
   "author": "Matthias Gemperli <hello@matthiasgemperli.ch>",
   "license": "ISC",
