@@ -3,7 +3,7 @@ import { render } from "./utils/render";
 import ConfigScreen, { ValidParameters } from "./entrypoints/ConfigScreen";
 import "datocms-react-ui/styles.css";
 import AssetBrowser from "./components/AssetBrowser/AssetBrowser";
-import { createClient, Provider } from "urql";
+import { cacheExchange, Client, fetchExchange, Provider } from "urql";
 import AppProvider from "./AppContext";
 
 connect({
@@ -27,7 +27,7 @@ connect({
       },
     ];
   },
-  renderAssetSource(sourceId: string, ctx: RenderAssetSourceCtx) {
+  renderAssetSource(_sourceId: string, ctx: RenderAssetSourceCtx) {
     const parameters = ctx.plugin.attributes.parameters as ValidParameters;
     const domain = parameters.token?.bearerToken?.domain;
     const accessToken = parameters.token?.bearerToken?.accessToken;
@@ -37,8 +37,9 @@ connect({
       return null;
     }
 
-    const client = createClient({
+    const client = new Client({
       url: `https://${domain}/graphql`,
+      exchanges: [cacheExchange, fetchExchange],
       fetchOptions: () => {
         return {
           headers: {

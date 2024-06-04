@@ -11,13 +11,14 @@ type Props = {
   ctx: RenderConfigScreenCtx;
 };
 
-export type ValidParameters = {
-  token: Token;
-};
+type FreshInstallationParameters = { token: null };
+export type ValidParameters = { token: Token };
+
+type Parameters = FreshInstallationParameters | ValidParameters;
 
 export default function ConfigScreen({ ctx }: Props) {
-  const parameters = ctx.plugin.attributes.parameters as ValidParameters;
-  const token: Token = parameters.token;
+  const parameters = ctx.plugin.attributes.parameters as Parameters;
+  const token = parameters.token;
 
   return (
     <Canvas ctx={ctx}>
