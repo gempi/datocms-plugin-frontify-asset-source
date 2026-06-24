@@ -44,8 +44,8 @@ export const LibraryAssetsQuery = `
                     title
                     description
                     filename
-                    downloadUrl
-                    previewUrl(width: 500, height: 500)
+                    previewThumb: previewUrl(width: 300, height: 300)
+                    previewMaster: previewUrl(width: 2560)
                     author
                     tags {
                         value
