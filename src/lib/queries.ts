@@ -47,12 +47,20 @@ export const LibraryAssetsQuery = `
                     previewThumb: previewUrl(width: 300, height: 300)
                     previewMaster: previewUrl(width: 2560)
                     author
+                    alternativeText
+                    isDecorative
+                    externalId
+                    expiresAt
+                    focalPoint
                     tags {
                         value
                     }
                     copyright {
                         status
                         notice
+                    }
+                    licenses {
+                        title
                     }
                 }
             }

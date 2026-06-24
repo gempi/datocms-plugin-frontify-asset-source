@@ -8,6 +8,7 @@ import {
   getImportSettings,
   toImportFilename,
 } from "../../lib/importSettings";
+import { buildFieldMetadata } from "../../lib/assetMetadata";
 
 import styles from "./Page.module.css";
 
@@ -45,10 +46,14 @@ function Page({ ctx, libraryId, variables, searchTerm }: PageProps) {
           importSettings.format
         ),
       },
-      author: asset.author,
-      notes: asset.description,
+      author: asset.author ?? undefined,
+      notes: asset.description ?? undefined,
       tags: (asset.tags ?? []).map((tag: any) => tag.value),
-      copyright: asset.copyright?.notice,
+      copyright: asset.copyright?.notice ?? undefined,
+      default_field_metadata: buildFieldMetadata(
+        asset,
+        ctx.site.attributes.locales
+      ),
     });
   };
 
