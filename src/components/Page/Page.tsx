@@ -3,28 +3,13 @@ import { useContext, useEffect } from "react";
 import { useQuery } from "urql";
 import { AppContext } from "../../AppContext";
 import { LibraryAssetsQuery } from "../../lib/queries";
+import {
+  buildImportUrl,
+  getImportSettings,
+  toImportFilename,
+} from "../../lib/importSettings";
 
 import styles from "./Page.module.css";
-
-// Web-sensible import target. DatoCMS rehosts the bytes and serves responsive
-// variants from its own CDN, so we import a single ~2560px WebP master.
-const IMPORT_FORMAT = "webp";
-const IMPORT_QUALITY = "82";
-
-// Add format + quality to a Frontify CDN preview URL. Uses URL parsing (not
-// string concat) so it is robust regardless of the URL's existing query string.
-function buildImportUrl(previewMaster: string): string {
-  const url = new URL(previewMaster);
-  url.searchParams.set("format", IMPORT_FORMAT);
-  url.searchParams.set("quality", IMPORT_QUALITY);
-  return url.toString();
-}
-
-// Match the imported file's extension to the format we actually import.
-function toWebpFilename(filename: string | null | undefined, id: string): string {
-  const base = (filename ?? id).replace(/\.[a-z0-9]{2,4}$/i, "");
-  return `${base}.${IMPORT_FORMAT}`;
-}
 
 type PageProps = {
   ctx: RenderAssetSourceCtx;
@@ -35,6 +20,7 @@ type PageProps = {
 
 function Page({ ctx, libraryId, variables, searchTerm }: PageProps) {
   const { setHasMore, setLoading } = useContext(AppContext);
+  const importSettings = getImportSettings(ctx.plugin.attributes.parameters);
   const [{ data }] = useQuery({
     query: LibraryAssetsQuery,
     pause: !libraryId,
@@ -49,11 +35,15 @@ function Page({ ctx, libraryId, variables, searchTerm }: PageProps) {
   const handleSelect = (asset: any) => {
     ctx.select({
       resource: {
-        // Import a web-sized WebP derivative from Frontify's (unsigned,
+        // Import a web-sized derivative from Frontify's (unsigned,
         // CORS-enabled) CDN rather than the raw original. `previewMaster` is a
-        // media.ffycdn.net URL capped at 2560px; we add format + quality on top.
-        url: buildImportUrl(asset.previewMaster),
-        filename: toWebpFilename(asset.filename, asset.id),
+        // media.ffycdn.net URL; format/size/quality come from plugin settings.
+        url: buildImportUrl(asset.previewMaster, importSettings),
+        filename: toImportFilename(
+          asset.filename,
+          asset.id,
+          importSettings.format
+        ),
       },
       author: asset.author,
       notes: asset.description,
