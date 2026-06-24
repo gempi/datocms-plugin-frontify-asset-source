@@ -3,12 +3,6 @@ import { useContext, useEffect } from "react";
 import { useQuery } from "urql";
 import { AppContext } from "../../AppContext";
 import { LibraryAssetsQuery } from "../../lib/queries";
-import {
-  buildImportUrl,
-  getImportSettings,
-  toImportFilename,
-} from "../../lib/importSettings";
-import { buildFieldMetadata } from "../../lib/assetMetadata";
 
 import styles from "./Page.module.css";
 
@@ -18,11 +12,20 @@ type PageProps = {
   variables: any;
   searchTerm: any;
   sortBy: string;
+  selectedIds: Set<string>;
+  onToggle: (asset: any) => void;
 };
 
-function Page({ ctx, libraryId, variables, searchTerm, sortBy }: PageProps) {
+function Page({
+  ctx,
+  libraryId,
+  variables,
+  searchTerm,
+  sortBy,
+  selectedIds,
+  onToggle,
+}: PageProps) {
   const { setHasMore, setLoading } = useContext(AppContext);
-  const importSettings = getImportSettings(ctx.plugin.attributes.parameters);
   const [{ data }] = useQuery({
     query: LibraryAssetsQuery,
     pause: !libraryId,
@@ -34,30 +37,6 @@ function Page({ ctx, libraryId, variables, searchTerm, sortBy }: PageProps) {
       sortBy,
     },
   });
-
-  const handleSelect = (asset: any) => {
-    ctx.select({
-      resource: {
-        // Import a web-sized derivative from Frontify's (unsigned,
-        // CORS-enabled) CDN rather than the raw original. `previewMaster` is a
-        // media.ffycdn.net URL; format/size/quality come from plugin settings.
-        url: buildImportUrl(asset.previewMaster, importSettings),
-        filename: toImportFilename(
-          asset.filename,
-          asset.id,
-          importSettings.format
-        ),
-      },
-      author: asset.author ?? undefined,
-      notes: asset.description ?? undefined,
-      tags: (asset.tags ?? []).map((tag: any) => tag.value),
-      copyright: asset.copyright?.notice ?? undefined,
-      default_field_metadata: buildFieldMetadata(
-        asset,
-        ctx.site.attributes.locales
-      ),
-    });
-  };
 
   useEffect(() => {
     setLoading(true);
@@ -71,16 +50,44 @@ function Page({ ctx, libraryId, variables, searchTerm, sortBy }: PageProps) {
   return (
     <>
       {data?.library?.assets?.items?.map((asset: any) => {
+        const selected = selectedIds.has(asset.id);
         return (
           <div
             key={asset.id}
-            onClick={() => handleSelect(asset)}
+            onClick={() => onToggle(asset)}
             className={styles.asset}
             style={{
               position: "relative",
               cursor: "pointer",
+              outline: selected
+                ? "3px solid var(--accent-color, #1a73e8)"
+                : "none",
+              outlineOffset: -3,
             }}
           >
+            {selected && (
+              <div
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  top: 6,
+                  right: 6,
+                  zIndex: 2,
+                  width: 22,
+                  height: 22,
+                  borderRadius: "50%",
+                  background: "var(--accent-color, #1a73e8)",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 14,
+                  lineHeight: 1,
+                }}
+              >
+                ✓
+              </div>
+            )}
             <div className={styles.assetInfo}>
               <div className={styles.assetDetail}>{asset.title}</div>
             </div>

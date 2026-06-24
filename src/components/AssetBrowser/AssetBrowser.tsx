@@ -1,11 +1,13 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { Button, Canvas, Spinner, TextInput } from "datocms-react-ui";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
 import { AppContext } from "../../AppContext";
 import { useRef } from "react";
 import Page from "../Page/Page";
 import { BrandsQuery, BrandLibrariesQuery } from "../../lib/queries";
+import { getImportSettings } from "../../lib/importSettings";
+import { buildUpload, selectUploads } from "../../lib/buildUpload";
 
 interface Brand {
   id: string;
@@ -48,6 +50,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLibraryId, setSelectedLibraryId] = useState("");
   const [sortBy, setSortBy] = useState("RELEVANCE");
+  const [selected, setSelected] = useState<Map<string, any>>(new Map());
   const [pageVariables, setPageVariables] = useState([
     {
       page: 1,
@@ -95,6 +98,41 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
       setLoading(false);
     }
   }, [error, ctx, setLoading]);
+
+  // Clear the selection when switching libraries.
+  useEffect(() => {
+    setSelected(new Map());
+  }, [selectedLibraryId]);
+
+  const toggleSelect = useCallback((asset: any) => {
+    setSelected((current) => {
+      const next = new Map(current);
+      if (next.has(asset.id)) {
+        next.delete(asset.id);
+      } else {
+        next.set(asset.id, asset);
+      }
+      return next;
+    });
+  }, []);
+
+  const selectedIds = useMemo(() => new Set(selected.keys()), [selected]);
+
+  const handleUploadSelected = () => {
+    const assets = Array.from(selected.values());
+    if (assets.length === 0) {
+      return;
+    }
+    const importSettings = getImportSettings(ctx.plugin.attributes.parameters);
+    const uploads = assets.map((asset) =>
+      buildUpload(asset, importSettings, ctx.site.attributes.locales)
+    );
+    selectUploads(ctx, uploads);
+    ctx.notice(
+      `Imported ${uploads.length} asset${uploads.length > 1 ? "s" : ""}.`
+    );
+    setSelected(new Map());
+  };
 
   return (
     <Canvas ctx={ctx}>
@@ -154,6 +192,33 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
           </select>
         </div>
       </div>
+      {selected.size > 0 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+            padding: "8px 0",
+            marginBottom: 8,
+            borderBottom: "1px solid var(--border-color, #ddd)",
+          }}
+        >
+          <span>{selected.size} selected</span>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Button buttonSize="s" onClick={() => setSelected(new Map())}>
+              Clear
+            </Button>
+            <Button
+              buttonSize="s"
+              buttonType="primary"
+              onClick={handleUploadSelected}
+            >
+              Upload selected
+            </Button>
+          </div>
+        </div>
+      )}
       <div style={{ position: "relative", minHeight: 200 }}>
         {loading && (
           <div
@@ -184,6 +249,8 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
               libraryId={selectedLibraryId}
               searchTerm={searchTerm}
               sortBy={sortBy}
+              selectedIds={selectedIds}
+              onToggle={toggleSelect}
             />
           ))}
         </div>
