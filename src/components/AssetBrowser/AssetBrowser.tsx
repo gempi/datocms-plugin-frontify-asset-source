@@ -1,5 +1,5 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
-import { Button, Canvas, Spinner, TextInput } from "datocms-react-ui";
+import { Button, Canvas, SelectInput, Spinner, TextInput } from "datocms-react-ui";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
 import { AppContext } from "../../AppContext";
@@ -32,7 +32,9 @@ interface LibrariesData {
   };
 }
 
-const SORT_OPTIONS = [
+type SelectOption = { label: string; value: string };
+
+const SORT_OPTIONS: SelectOption[] = [
   { label: "Relevance", value: "RELEVANCE" },
   { label: "Newest first", value: "NEWEST" },
   { label: "Oldest first", value: "OLDEST" },
@@ -76,6 +78,11 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   const libraries = useMemo(
     () => librariesData?.brand?.libraries?.items ?? [],
     [librariesData]
+  );
+
+  const libraryOptions = useMemo<SelectOption[]>(
+    () => libraries.map((library) => ({ label: library.name, value: library.id })),
+    [libraries]
   );
 
   // Default to the first library once loaded. A picker is only shown when the
@@ -138,17 +145,21 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
     <Canvas ctx={ctx}>
       <div style={{ paddingBottom: 8 }}>
         {libraries.length > 1 && (
-          <select
-            value={selectedLibraryId}
-            onChange={(e) => setSelectedLibraryId(e.target.value)}
-            style={{ marginBottom: 8, width: "100%", padding: 8 }}
-          >
-            {libraries.map((library) => (
-              <option key={library.id} value={library.id}>
-                {library.name}
-              </option>
-            ))}
-          </select>
+          <div style={{ marginBottom: 8 }}>
+            <SelectInput<SelectOption>
+              options={libraryOptions}
+              value={
+                libraryOptions.find(
+                  (option) => option.value === selectedLibraryId
+                ) ?? null
+              }
+              onChange={(option) => {
+                if (option) {
+                  setSelectedLibraryId(option.value);
+                }
+              }}
+            />
+          </div>
         )}
         <form
           style={{
@@ -178,18 +189,21 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
           }}
         >
           <label htmlFor="frontify-sort">Sort by</label>
-          <select
-            id="frontify-sort"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            style={{ padding: 6 }}
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div style={{ flex: 1, maxWidth: 240 }}>
+            <SelectInput<SelectOption>
+              inputId="frontify-sort"
+              options={SORT_OPTIONS}
+              value={
+                SORT_OPTIONS.find((option) => option.value === sortBy) ??
+                SORT_OPTIONS[0]
+              }
+              onChange={(option) => {
+                if (option) {
+                  setSortBy(option.value);
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
       {selected.size > 0 && (

@@ -1,5 +1,5 @@
 import { RenderConfigScreenCtx } from "datocms-plugin-sdk";
-import { Button, Canvas, TextInput } from "datocms-react-ui";
+import { Button, Canvas, SelectInput, TextInput } from "datocms-react-ui";
 import { useState } from "react";
 import {
   authorize,
@@ -177,18 +177,19 @@ export default function ConfigScreen({ ctx }: Props) {
           <label htmlFor="frontify-format" style={labelStyle}>
             Format
           </label>
-          <select
-            id="frontify-format"
-            value={format}
-            onChange={(e) => setFormat(e.target.value as ImportFormat)}
-            style={{ width: "100%", padding: 8 }}
-          >
-            {FORMAT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <SelectInput<FormatOption>
+            inputId="frontify-format"
+            options={FORMAT_OPTIONS}
+            value={
+              FORMAT_OPTIONS.find((option) => option.value === format) ??
+              FORMAT_OPTIONS[0]
+            }
+            onChange={(option) => {
+              if (option) {
+                setFormat(option.value);
+              }
+            }}
+          />
         </div>
 
         <div style={{ marginBottom: 16 }}>
