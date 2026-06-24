@@ -30,6 +30,14 @@ interface LibrariesData {
   };
 }
 
+const SORT_OPTIONS = [
+  { label: "Relevance", value: "RELEVANCE" },
+  { label: "Newest first", value: "NEWEST" },
+  { label: "Oldest first", value: "OLDEST" },
+  { label: "Title A–Z", value: "TITLE_ASCENDING" },
+  { label: "Title Z–A", value: "TITLE_DESCENDING" },
+];
+
 type AssetBrowserProps = {
   ctx: RenderAssetSourceCtx;
 };
@@ -39,6 +47,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   const { hasMore, loading, setLoading } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLibraryId, setSelectedLibraryId] = useState("");
+  const [sortBy, setSortBy] = useState("RELEVANCE");
   const [pageVariables, setPageVariables] = useState([
     {
       page: 1,
@@ -77,7 +86,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   // Reset pagination whenever the search term or the selected library changes.
   useEffect(() => {
     setPageVariables([{ page: 1, hasNext: true }]);
-  }, [selectedLibraryId, searchTerm]);
+  }, [selectedLibraryId, searchTerm, sortBy]);
 
   const error = brandsError || librariesError;
   useEffect(() => {
@@ -122,6 +131,28 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
             Search
           </Button>
         </form>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginTop: 8,
+          }}
+        >
+          <label htmlFor="frontify-sort">Sort by</label>
+          <select
+            id="frontify-sort"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            style={{ padding: 6 }}
+          >
+            {SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
       <div style={{ position: "relative", minHeight: 200 }}>
         {loading && (
@@ -152,6 +183,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
               variables={variables}
               libraryId={selectedLibraryId}
               searchTerm={searchTerm}
+              sortBy={sortBy}
             />
           ))}
         </div>

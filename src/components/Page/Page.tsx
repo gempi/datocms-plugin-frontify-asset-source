@@ -17,9 +17,10 @@ type PageProps = {
   libraryId: string;
   variables: any;
   searchTerm: any;
+  sortBy: string;
 };
 
-function Page({ ctx, libraryId, variables, searchTerm }: PageProps) {
+function Page({ ctx, libraryId, variables, searchTerm, sortBy }: PageProps) {
   const { setHasMore, setLoading } = useContext(AppContext);
   const importSettings = getImportSettings(ctx.plugin.attributes.parameters);
   const [{ data }] = useQuery({
@@ -30,6 +31,7 @@ function Page({ ctx, libraryId, variables, searchTerm }: PageProps) {
       limit: 30,
       page: variables.page,
       search: searchTerm,
+      sortBy,
     },
   });
 

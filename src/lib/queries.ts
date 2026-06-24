@@ -29,10 +29,12 @@ export const BrandLibrariesQuery = `
 // also named differently: `AssetQueryInput.search` (here) vs the old
 // `BrandQueryInput.term`.
 export const LibraryAssetsQuery = `
-  query LibraryAssets($id: ID!, $limit: Int, $page: Int, $search: String) {
+  query LibraryAssets($id: ID!, $limit: Int, $page: Int, $search: String, $sortBy: AssetQueryFilterSortType) {
     library(id: $id) {
         assets(limit: $limit, page: $page, query: {
           search: $search
+          sortBy: $sortBy
+          types: [IMAGE]
         }) {
             hasNextPage
             page
