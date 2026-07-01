@@ -29,10 +29,12 @@ export const BrandLibrariesQuery = `
 // also named differently: `AssetQueryInput.search` (here) vs the old
 // `BrandQueryInput.term`.
 export const LibraryAssetsQuery = `
-  query LibraryAssets($id: ID!, $limit: Int, $page: Int, $search: String) {
+  query LibraryAssets($id: ID!, $limit: Int, $page: Int, $search: String, $sortBy: AssetQueryFilterSortType) {
     library(id: $id) {
         assets(limit: $limit, page: $page, query: {
           search: $search
+          sortBy: $sortBy
+          types: [IMAGE]
         }) {
             hasNextPage
             page
@@ -44,15 +46,23 @@ export const LibraryAssetsQuery = `
                     title
                     description
                     filename
-                    downloadUrl
-                    previewUrl(width: 500, height: 500)
+                    previewThumb: previewUrl(width: 300, height: 300)
+                    previewMaster: previewUrl(width: 2560)
                     author
+                    alternativeText
+                    isDecorative
+                    externalId
+                    expiresAt
+                    focalPoint
                     tags {
                         value
                     }
                     copyright {
                         status
                         notice
+                    }
+                    licenses {
+                        title
                     }
                 }
             }

@@ -1,11 +1,13 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
-import { Button, Canvas, Spinner, TextInput } from "datocms-react-ui";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { Button, Canvas, SelectInput, Spinner, TextInput } from "datocms-react-ui";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
 import { AppContext } from "../../AppContext";
 import { useRef } from "react";
 import Page from "../Page/Page";
 import { BrandsQuery, BrandLibrariesQuery } from "../../lib/queries";
+import { getImportSettings } from "../../lib/importSettings";
+import { buildUpload, selectUploads } from "../../lib/buildUpload";
 
 interface Brand {
   id: string;
@@ -30,6 +32,16 @@ interface LibrariesData {
   };
 }
 
+type SelectOption = { label: string; value: string };
+
+const SORT_OPTIONS: SelectOption[] = [
+  { label: "Relevance", value: "RELEVANCE" },
+  { label: "Newest first", value: "NEWEST" },
+  { label: "Oldest first", value: "OLDEST" },
+  { label: "Title A–Z", value: "TITLE_ASCENDING" },
+  { label: "Title Z–A", value: "TITLE_DESCENDING" },
+];
+
 type AssetBrowserProps = {
   ctx: RenderAssetSourceCtx;
 };
@@ -39,6 +51,8 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   const { hasMore, loading, setLoading } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLibraryId, setSelectedLibraryId] = useState("");
+  const [sortBy, setSortBy] = useState("RELEVANCE");
+  const [selected, setSelected] = useState<Map<string, any>>(new Map());
   const [pageVariables, setPageVariables] = useState([
     {
       page: 1,
@@ -66,6 +80,11 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
     [librariesData]
   );
 
+  const libraryOptions = useMemo<SelectOption[]>(
+    () => libraries.map((library) => ({ label: library.name, value: library.id })),
+    [libraries]
+  );
+
   // Default to the first library once loaded. A picker is only shown when the
   // brand has more than one library (most brands have exactly one).
   useEffect(() => {
@@ -77,7 +96,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   // Reset pagination whenever the search term or the selected library changes.
   useEffect(() => {
     setPageVariables([{ page: 1, hasNext: true }]);
-  }, [selectedLibraryId, searchTerm]);
+  }, [selectedLibraryId, searchTerm, sortBy]);
 
   const error = brandsError || librariesError;
   useEffect(() => {
@@ -87,21 +106,60 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
     }
   }, [error, ctx, setLoading]);
 
+  // Clear the selection when switching libraries.
+  useEffect(() => {
+    setSelected(new Map());
+  }, [selectedLibraryId]);
+
+  const toggleSelect = useCallback((asset: any) => {
+    setSelected((current) => {
+      const next = new Map(current);
+      if (next.has(asset.id)) {
+        next.delete(asset.id);
+      } else {
+        next.set(asset.id, asset);
+      }
+      return next;
+    });
+  }, []);
+
+  const selectedIds = useMemo(() => new Set(selected.keys()), [selected]);
+
+  const handleUploadSelected = () => {
+    const assets = Array.from(selected.values());
+    if (assets.length === 0) {
+      return;
+    }
+    const importSettings = getImportSettings(ctx.plugin.attributes.parameters);
+    const uploads = assets.map((asset) =>
+      buildUpload(asset, importSettings, ctx.site.attributes.locales)
+    );
+    selectUploads(ctx, uploads);
+    ctx.notice(
+      `Imported ${uploads.length} asset${uploads.length > 1 ? "s" : ""}.`
+    );
+    setSelected(new Map());
+  };
+
   return (
     <Canvas ctx={ctx}>
       <div style={{ paddingBottom: 8 }}>
         {libraries.length > 1 && (
-          <select
-            value={selectedLibraryId}
-            onChange={(e) => setSelectedLibraryId(e.target.value)}
-            style={{ marginBottom: 8, width: "100%", padding: 8 }}
-          >
-            {libraries.map((library) => (
-              <option key={library.id} value={library.id}>
-                {library.name}
-              </option>
-            ))}
-          </select>
+          <div style={{ marginBottom: 8 }}>
+            <SelectInput<SelectOption>
+              options={libraryOptions}
+              value={
+                libraryOptions.find(
+                  (option) => option.value === selectedLibraryId
+                ) ?? null
+              }
+              onChange={(option) => {
+                if (option) {
+                  setSelectedLibraryId(option.value);
+                }
+              }}
+            />
+          </div>
         )}
         <form
           style={{
@@ -122,7 +180,59 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
             Search
           </Button>
         </form>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginTop: 8,
+          }}
+        >
+          <label htmlFor="frontify-sort">Sort by</label>
+          <div style={{ flex: 1, maxWidth: 240 }}>
+            <SelectInput<SelectOption>
+              inputId="frontify-sort"
+              options={SORT_OPTIONS}
+              value={
+                SORT_OPTIONS.find((option) => option.value === sortBy) ??
+                SORT_OPTIONS[0]
+              }
+              onChange={(option) => {
+                if (option) {
+                  setSortBy(option.value);
+                }
+              }}
+            />
+          </div>
+        </div>
       </div>
+      {selected.size > 0 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+            padding: "8px 0",
+            marginBottom: 8,
+            borderBottom: "1px solid var(--border-color, #ddd)",
+          }}
+        >
+          <span>{selected.size} selected</span>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Button buttonSize="s" onClick={() => setSelected(new Map())}>
+              Clear
+            </Button>
+            <Button
+              buttonSize="s"
+              buttonType="primary"
+              onClick={handleUploadSelected}
+            >
+              Upload selected
+            </Button>
+          </div>
+        </div>
+      )}
       <div style={{ position: "relative", minHeight: 200 }}>
         {loading && (
           <div
@@ -152,6 +262,9 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
               variables={variables}
               libraryId={selectedLibraryId}
               searchTerm={searchTerm}
+              sortBy={sortBy}
+              selectedIds={selectedIds}
+              onToggle={toggleSelect}
             />
           ))}
         </div>
