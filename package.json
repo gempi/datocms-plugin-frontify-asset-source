@@ -6,6 +6,9 @@
   "version": "0.1.6",
   "author": "Matthias Wolgensinger <hello@m18r.io>",
   "type": "module",
+  "repository": {
+    "url": "https://github.com/gempi/datocms-plugin-frontify-asset-source"
+  },
   "keywords": [
     "datocms-plugin",
     "frontify"
