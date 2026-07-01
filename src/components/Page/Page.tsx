@@ -2,27 +2,27 @@ import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { useContext, useEffect } from "react";
 import { useQuery } from "urql";
 import { AppContext } from "../../AppContext";
-import { BrandLevelSearchQuery } from "../../lib/queries";
+import { LibraryAssetsQuery } from "../../lib/queries";
 
 import styles from "./Page.module.css";
 
 type PageProps = {
   ctx: RenderAssetSourceCtx;
-  brand: any;
+  libraryId: string;
   variables: any;
   searchTerm: any;
 };
 
-function Page({ ctx, brand, variables, searchTerm }: PageProps) {
+function Page({ ctx, libraryId, variables, searchTerm }: PageProps) {
   const { setHasMore, setLoading } = useContext(AppContext);
   const [{ data }] = useQuery({
-    query: BrandLevelSearchQuery,
-    pause: !brand,
+    query: LibraryAssetsQuery,
+    pause: !libraryId,
     variables: {
-      id: brand?.id,
+      id: libraryId,
       limit: 30,
       page: variables.page,
-      term: searchTerm,
+      search: searchTerm,
     },
   });
 
@@ -34,23 +34,23 @@ function Page({ ctx, brand, variables, searchTerm }: PageProps) {
       },
       author: asset.author,
       notes: asset.description,
-      tags: asset.tags.map((tag: any) => tag.value),
-      copyright: asset.copyright.notice,
+      tags: (asset.tags ?? []).map((tag: any) => tag.value),
+      copyright: asset.copyright?.notice,
     });
   };
 
   useEffect(() => {
     setLoading(true);
 
-    if (data?.brand?.search) {
-      setHasMore(data.brand.search.hasNextPage);
+    if (data?.library?.assets) {
+      setHasMore(data.library.assets.hasNextPage);
       setLoading(false);
     }
   }, [data, setHasMore, setLoading]);
 
   return (
     <>
-      {data?.brand?.search?.items?.map((asset: any) => {
+      {data?.library?.assets?.items?.map((asset: any) => {
         return (
           <div
             key={asset.id}
