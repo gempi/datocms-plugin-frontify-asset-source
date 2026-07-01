@@ -1,65 +1,49 @@
 {
   "name": "datocms-plugin-frontify-asset-source",
-  "version": "0.1.4",
+  "description": "Insert photos from your Frontify Account directly inside of your DatoCMS project",
   "homepage": "https://github.com/gempi/datocms-plugin-frontify-asset-source#readme",
-  "author": "Matthias Gemperli <hello@matthiasgemperli.ch>",
-  "license": "ISC",
+  "private": false,
+  "version": "0.1.4",
+  "author": "Matthias Wolgensinger <hello@m18r.io>",
+  "type": "module",
   "keywords": [
     "datocms-plugin",
     "frontify"
   ],
-  "description": "Insert photos from your Frontify Account directly inside of your DatoCMS project",
-  "dependencies": {
-    "@frontify/frontify-authenticator": "^2.0.0",
-    "@types/node": "^18.19.130",
-    "@types/react": "^18.3.27",
-    "@types/react-dom": "^18.3.7",
-    "datocms-plugin-sdk": "^2.2.2",
-    "datocms-react-ui": "^2.2.4",
-    "final-form": "^4.20.10",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-final-form": "^6.5.9",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
-    "urql": "^4.1.0"
-  },
-  "scripts": {
-    "start": "cross-env BROWSER='none' PUBLIC_URL='/' react-scripts start",
-    "build": "cross-env PUBLIC_URL='.' react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "prepublishOnly": "npm run build"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "cross-env": "^7.0.3"
-  },
   "datoCmsPlugin": {
     "title": "Asset source for Frontify",
     "previewImage": "docs/preview.mp4",
     "coverImage": "docs/cover.png",
-    "entryPoint": "build/index.html",
+    "entryPoint": "dist/index.html",
     "permissions": []
   },
   "files": [
-    "docs",
-    "build"
-  ]
+    "dist",
+    "docs"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@frontify/frontify-authenticator": "^2.0.1",
+    "@types/node": "^18.19.130",
+    "datocms-plugin-sdk": "^2.2.2",
+    "datocms-react-ui": "^2.2.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-final-form": "^6.5.9",
+    "urql": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "baseline-browser-mapping": "^2.10.40",
+    "globals": "^15.9.0",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1"
+  }
 }

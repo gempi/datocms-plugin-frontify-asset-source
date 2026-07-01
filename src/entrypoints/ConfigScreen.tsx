@@ -44,7 +44,7 @@ export default function ConfigScreen({ ctx }: Props) {
   const initial = getImportSettings(parameters);
   const [format, setFormat] = useState<ImportFormat>(initial.format);
   const [maxWidth, setMaxWidth] = useState<string>(
-    initial.maxWidth > 0 ? String(initial.maxWidth) : ""
+    initial.maxWidth > 0 ? String(initial.maxWidth) : "",
   );
   const [quality, setQuality] = useState<string>(String(initial.quality));
 
@@ -66,7 +66,7 @@ export default function ConfigScreen({ ctx }: Props) {
     // Preserve the auth token when updating settings.
     await ctx.updatePluginParameters({ ...parameters, importSettings });
     setMaxWidth(
-      importSettings.maxWidth > 0 ? String(importSettings.maxWidth) : ""
+      importSettings.maxWidth > 0 ? String(importSettings.maxWidth) : "",
     );
     setQuality(String(importSettings.quality));
     ctx.notice("Import settings saved.");

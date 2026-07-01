@@ -10,7 +10,7 @@ import { buildFieldMetadata } from "./assetMetadata";
 export function buildUpload(
   asset: any,
   settings: ImportSettings,
-  locales: string[]
+  locales: string[],
 ): NewUpload {
   return {
     resource: {
@@ -35,7 +35,7 @@ type BatchSelectionContext = RenderAssetSourceCtx & {
 /** Send one or more uploads to DatoCMS in a single user action. */
 export function selectUploads(
   ctx: RenderAssetSourceCtx,
-  uploads: NewUpload[]
+  uploads: NewUpload[],
 ): void {
   const batchCtx = ctx as BatchSelectionContext;
   if (uploads.length > 1 && typeof batchCtx.selectMultiple === "function") {

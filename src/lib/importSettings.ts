@@ -67,7 +67,7 @@ export function importExtension(format: ImportFormat): string {
  */
 export function buildImportUrl(
   previewUrl: string,
-  settings: ImportSettings
+  settings: ImportSettings,
 ): string {
   try {
     const url = new URL(previewUrl);
@@ -90,7 +90,7 @@ export function buildImportUrl(
 export function toImportFilename(
   filename: string | null | undefined,
   id: string,
-  format: ImportFormat
+  format: ImportFormat,
 ): string {
   const base = (filename ?? id).replace(/\.[a-z0-9]{2,4}$/i, "");
   return `${base}.${importExtension(format)}`;

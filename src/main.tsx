@@ -55,7 +55,7 @@ connect({
         <Provider value={client}>
           <AssetBrowser ctx={ctx} />
         </Provider>
-      </AppProvider>
+      </AppProvider>,
     );
   },
 });

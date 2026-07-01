@@ -1,13 +1,19 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
-import { Button, Canvas, SelectInput, Spinner, TextInput } from "datocms-react-ui";
+import {
+  Button,
+  Canvas,
+  SelectInput,
+  Spinner,
+  TextInput,
+} from "datocms-react-ui";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
 import { AppContext } from "../../AppContext";
 import { useRef } from "react";
 import Page from "../Page/Page";
-import { BrandsQuery, BrandLibrariesQuery } from "../../lib/queries";
 import { getImportSettings } from "../../lib/importSettings";
 import { buildUpload, selectUploads } from "../../lib/buildUpload";
+import styles from "./AssetBrowser.module.css";
 
 interface Brand {
   id: string;
@@ -64,7 +70,14 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   ]);
 
   const [{ data: brandsData, error: brandsError }] = useQuery<BrandsData>({
-    query: BrandsQuery,
+    query: `
+      query {
+        brands {
+            id
+            name
+          }
+      }
+    `,
   });
 
   const brand = brandsData?.brands?.[0];
@@ -73,19 +86,32 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   // server-side), so resolve the brand's libraries and pick one.
   const [{ data: librariesData, error: librariesError }] =
     useQuery<LibrariesData>({
-      query: BrandLibrariesQuery,
+      query: `
+        query BrandLibraries($id: ID!) {
+          brand(id: $id) {
+            libraries(limit: 100, page: 1) {
+              total
+              items {
+                id
+                name
+              }
+            }
+          }
+        }
+      `,
       pause: !brand,
       variables: { id: brand?.id },
     });
 
   const libraries = useMemo(
     () => librariesData?.brand?.libraries?.items ?? [],
-    [librariesData]
+    [librariesData],
   );
 
   const libraryOptions = useMemo<SelectOption[]>(
-    () => libraries.map((library) => ({ label: library.name, value: library.id })),
-    [libraries]
+    () =>
+      libraries.map((library) => ({ label: library.name, value: library.id })),
+    [libraries],
   );
 
   // Default to the first library once loaded. A picker is only shown when the
@@ -135,25 +161,25 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
     }
     const importSettings = getImportSettings(ctx.plugin.attributes.parameters);
     const uploads = assets.map((asset) =>
-      buildUpload(asset, importSettings, ctx.site.attributes.locales)
+      buildUpload(asset, importSettings, ctx.site.attributes.locales),
     );
     selectUploads(ctx, uploads);
     ctx.notice(
-      `Imported ${uploads.length} asset${uploads.length > 1 ? "s" : ""}.`
+      `Imported ${uploads.length} asset${uploads.length > 1 ? "s" : ""}.`,
     );
     setSelected(new Map());
   };
 
   return (
     <Canvas ctx={ctx}>
-      <div style={{ paddingBottom: 8 }}>
+      <div className={styles.contentWrapper}>
         {libraries.length > 1 && (
-          <div style={{ marginBottom: 8 }}>
+          <div className={styles.libraryPicker}>
             <SelectInput<SelectOption>
               options={libraryOptions}
               value={
                 libraryOptions.find(
-                  (option) => option.value === selectedLibraryId
+                  (option) => option.value === selectedLibraryId,
                 ) ?? null
               }
               onChange={(option) => {
@@ -165,10 +191,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
           </div>
         )}
         <form
-          style={{
-            display: "flex",
-            gap: "8px",
-          }}
+          className={styles.searchForm}
           onSubmit={(e) => {
             e.preventDefault();
             setSearchTerm(searchRef.current?.value || "");
@@ -183,16 +206,9 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
             Search
           </Button>
         </form>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            marginTop: 8,
-          }}
-        >
+        <div className={styles.sortControls}>
           <label htmlFor="frontify-sort">Sort by</label>
-          <div style={{ flex: 1, maxWidth: 240 }}>
+          <div className={styles.sortSelectWrapper}>
             <SelectInput<SelectOption>
               inputId="frontify-sort"
               options={SORT_OPTIONS}
@@ -210,19 +226,9 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
         </div>
       </div>
       {selected.size > 0 && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 8,
-            padding: "8px 0",
-            marginBottom: 8,
-            borderBottom: "1px solid var(--border-color, #ddd)",
-          }}
-        >
+        <div className={styles.actionBar}>
           <span>{selected.size} selected</span>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className={styles.selectedActions}>
             <Button buttonSize="s" onClick={() => setSelected(new Map())}>
               Clear
             </Button>
@@ -236,28 +242,14 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
           </div>
         </div>
       )}
-      <div style={{ position: "relative", minHeight: 200 }}>
+      <div className={styles.container}>
         {loading && (
-          <div
-            style={{
-              zIndex: 999,
-              height: "100%",
-              position: "absolute",
-              width: "100%",
-              background: "rgba(255,255,255,0.2)",
-            }}
-          >
+          <div className={styles.loadingOverlay}>
             <Spinner size={48} placement="centered" />
           </div>
         )}
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-            gap: "12px",
-          }}
-        >
+        <div className={styles.assetGrid}>
           {pageVariables.map((variables, i) => (
             <Page
               ctx={ctx}
@@ -275,7 +267,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
 
       {hasMore && (
         <Button
-          style={{ marginTop: 12 }}
+          className={styles.loadMoreButton}
           buttonType="muted"
           fullWidth
           onClick={() =>

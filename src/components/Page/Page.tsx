@@ -2,7 +2,6 @@ import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { useContext, useEffect } from "react";
 import { useQuery } from "urql";
 import { AppContext } from "../../AppContext";
-import { LibraryAssetsQuery } from "../../lib/queries";
 
 import styles from "./Page.module.css";
 
@@ -17,7 +16,6 @@ type PageProps = {
 };
 
 function Page({
-  ctx,
   libraryId,
   variables,
   searchTerm,
@@ -36,7 +34,58 @@ function Page({
   const effectiveSort = hasSearch ? sortBy : "NEWEST";
 
   const [{ data }] = useQuery({
-    query: LibraryAssetsQuery,
+    query: `
+      query LibraryAssets(
+        $id: ID!
+        $limit: Int
+        $page: Int
+        $search: String
+        $sortBy: AssetQueryFilterSortType
+      ) {
+        library(id: $id) {
+          assets(
+            limit: $limit
+            page: $page
+            query: {
+              search: $search
+              sortBy: $sortBy
+              types: [IMAGE]
+            }
+          ) {
+            hasNextPage
+            page
+            total
+            items {
+              __typename
+              ... on Image {
+                id
+                title
+                description
+                filename
+                previewThumb: previewUrl(width: 300, height: 300)
+                previewMaster: previewUrl(width: 2560)
+                author
+                alternativeText
+                isDecorative
+                externalId
+                expiresAt
+                focalPoint
+                tags {
+                  value
+                }
+                copyright {
+                  status
+                  notice
+                }
+                licenses {
+                  title
+                }
+              }
+            }
+          }
+        }
+      }
+    `,
     pause: !libraryId,
     variables: {
       id: libraryId,
@@ -64,36 +113,10 @@ function Page({
           <div
             key={asset.id}
             onClick={() => onToggle(asset)}
-            className={styles.asset}
-            style={{
-              position: "relative",
-              cursor: "pointer",
-              outline: selected
-                ? "3px solid var(--accent-color, #1a73e8)"
-                : "none",
-              outlineOffset: -3,
-            }}
+            className={`${styles.asset} ${selected ? styles.selected : ""}`}
           >
             {selected && (
-              <div
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  top: 6,
-                  right: 6,
-                  zIndex: 2,
-                  width: 22,
-                  height: 22,
-                  borderRadius: "50%",
-                  background: "var(--accent-color, #1a73e8)",
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 14,
-                  lineHeight: 1,
-                }}
-              >
+              <div aria-hidden="true" className={styles.assetSelectedIndicator}>
                 ✓
               </div>
             )}
@@ -101,13 +124,7 @@ function Page({
               <div className={styles.assetDetail}>{asset.title}</div>
             </div>
             <img
-              style={{
-                aspectRatio: "1/1",
-                height: "100%",
-                width: "100%",
-                objectFit: "cover",
-                lineHeight: 0,
-              }}
+              className={styles.assetImage}
               src={asset.previewThumb}
               alt=""
             />
