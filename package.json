@@ -3,7 +3,7 @@
   "description": "Insert photos from your Frontify Account directly inside of your DatoCMS project",
   "homepage": "https://github.com/gempi/datocms-plugin-frontify-asset-source#readme",
   "private": false,
-  "version": "0.1.4",
+  "version": "0.1.5",
   "author": "Matthias Wolgensinger <hello@m18r.io>",
   "type": "module",
   "keywords": [
