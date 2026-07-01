@@ -26,6 +26,15 @@ function Page({
   onToggle,
 }: PageProps) {
   const { setHasMore, setLoading } = useContext(AppContext);
+
+  // Frontify's Library.assets returns an empty `items` array (with a non-zero
+  // `total`) when browsing without a search term under RELEVANCE (and other
+  // sorts) — relevance has nothing to rank against. NEWEST is the only sort that
+  // reliably returns assets while browsing, so force it whenever the search box
+  // is empty; the user's chosen sort still applies once they actually search.
+  const hasSearch = typeof searchTerm === "string" && searchTerm.trim() !== "";
+  const effectiveSort = hasSearch ? sortBy : "NEWEST";
+
   const [{ data }] = useQuery({
     query: LibraryAssetsQuery,
     pause: !libraryId,
@@ -34,7 +43,7 @@ function Page({
       limit: 30,
       page: variables.page,
       search: searchTerm,
-      sortBy,
+      sortBy: effectiveSort,
     },
   });
 

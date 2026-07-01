@@ -51,7 +51,10 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   const { hasMore, loading, setLoading } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLibraryId, setSelectedLibraryId] = useState("");
-  const [sortBy, setSortBy] = useState("RELEVANCE");
+  // Default to NEWEST, not RELEVANCE: on open the search box is empty, and
+  // Frontify's Library.assets returns no items for a relevance sort without a
+  // query term (see Page.tsx). NEWEST is the only sort that reliably browses.
+  const [sortBy, setSortBy] = useState("NEWEST");
   const [selected, setSelected] = useState<Map<string, any>>(new Map());
   const [pageVariables, setPageVariables] = useState([
     {
