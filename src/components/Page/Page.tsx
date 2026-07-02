@@ -126,7 +126,7 @@ function Page({
             <img
               className={styles.assetImage}
               src={asset.previewThumb}
-              alt=""
+              alt={asset.alternativeText}
             />
           </div>
         );
