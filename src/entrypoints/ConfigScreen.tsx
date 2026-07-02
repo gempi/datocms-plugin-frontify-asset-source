@@ -13,6 +13,7 @@ import {
   ImportFormat,
   ImportSettings,
 } from "../lib/importSettings";
+import styles from "./ConfigScreen.module.css";
 
 type Props = {
   ctx: RenderConfigScreenCtx;
@@ -31,12 +32,6 @@ const FORMAT_OPTIONS: FormatOption[] = [
   { label: "Optimized JPEG", value: "jpeg" },
 ];
 
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontWeight: "bold",
-  marginBottom: 4,
-};
-
 export default function ConfigScreen({ ctx }: Props) {
   const parameters = ctx.plugin.attributes.parameters as Parameters;
   const token = parameters.token;
@@ -47,8 +42,14 @@ export default function ConfigScreen({ ctx }: Props) {
     initial.maxWidth > 0 ? String(initial.maxWidth) : "",
   );
   const [quality, setQuality] = useState<string>(String(initial.quality));
+  const [isSaving, setIsSaving] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRevoking, setIsRevoking] = useState(false);
 
   const saveImportSettings = async () => {
+    setIsSaving(true);
+
     const parsedMaxWidth =
       maxWidth.trim() === "" ? 0 : Math.max(0, Math.round(Number(maxWidth)));
     const parsedQuality = Math.round(Number(quality));
@@ -63,13 +64,18 @@ export default function ConfigScreen({ ctx }: Props) {
         : DEFAULT_IMPORT_SETTINGS.quality,
     };
 
-    // Preserve the auth token when updating settings.
-    await ctx.updatePluginParameters({ ...parameters, importSettings });
-    setMaxWidth(
-      importSettings.maxWidth > 0 ? String(importSettings.maxWidth) : "",
-    );
-    setQuality(String(importSettings.quality));
-    ctx.notice("Import settings saved.");
+    try {
+      await ctx.updatePluginParameters({ ...parameters, importSettings });
+      setMaxWidth(
+        importSettings.maxWidth > 0 ? String(importSettings.maxWidth) : "",
+      );
+      setQuality(String(importSettings.quality));
+      ctx.notice("Import settings saved.");
+    } catch (err) {
+      ctx.alert("Unable to save import settings. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -77,54 +83,61 @@ export default function ConfigScreen({ ctx }: Props) {
       <>
         {token ? (
           <>
-            <div style={{ marginBottom: "24px" }}>
+            <div className={styles.tokenInfo}>
               <b>Authorized Domain:</b> {token?.bearerToken?.domain}
             </div>
 
-            <div style={{ marginBottom: "24px" }}>
+            <div className={styles.actionBlock}>
               <Button
-                type="submit"
+                type="button"
                 fullWidth
                 buttonSize="l"
                 buttonType="primary"
+                loading={isRefreshing}
                 onClick={async () => {
+                  setIsRefreshing(true);
                   try {
                     const newToken = await refresh(token);
 
-                    ctx.updatePluginParameters({
+                    await ctx.updatePluginParameters({
                       ...parameters,
                       token: newToken,
                     });
                     ctx.notice("Successfully received a new token!");
                   } catch (err) {
-                    ctx.updatePluginParameters({
+                    await ctx.updatePluginParameters({
                       ...parameters,
                       token: null,
                     });
-                    ctx.notice("Something went wrong. Please login again!");
+                    ctx.alert("Something went wrong. Please login again!");
+                  } finally {
+                    setIsRefreshing(false);
                   }
                 }}
               >
                 Refresh token
               </Button>
             </div>
-            <div>
+            <div className={styles.actionBlock}>
               <Button
-                type="submit"
+                type="button"
                 fullWidth
                 buttonSize="l"
                 buttonType="primary"
+                loading={isRevoking}
                 onClick={async () => {
+                  setIsRevoking(true);
                   try {
                     await revoke(token);
-
-                    ctx.updatePluginParameters({
+                    await ctx.updatePluginParameters({
                       ...parameters,
                       token: null,
                     });
                     ctx.notice("Successfully revoked your token!");
                   } catch (err) {
-                    ctx.notice("Something went wrong.");
+                    ctx.alert("Something went wrong while revoking access.");
+                  } finally {
+                    setIsRevoking(false);
                   }
                 }}
               >
@@ -134,24 +147,28 @@ export default function ConfigScreen({ ctx }: Props) {
           </>
         ) : (
           <Button
-            type="submit"
+            type="button"
             fullWidth
             buttonSize="l"
             buttonType="primary"
+            loading={isAuthenticating}
             onClick={async () => {
+              setIsAuthenticating(true);
               try {
                 const newToken: Token = await authorize({
                   clientId: "dato-cms",
                   scopes: ["basic:read"],
                 });
 
-                ctx.updatePluginParameters({
+                await ctx.updatePluginParameters({
                   ...parameters,
                   token: newToken,
                 });
                 ctx.notice("You logged in successfully");
               } catch (err) {
                 ctx.alert("Something went wrong");
+              } finally {
+                setIsAuthenticating(false);
               }
             }}
           >
@@ -159,22 +176,16 @@ export default function ConfigScreen({ ctx }: Props) {
           </Button>
         )}
 
-        <hr
-          style={{
-            margin: "32px 0",
-            border: 0,
-            borderTop: "1px solid var(--border-color)",
-          }}
-        />
+        <hr className={styles.divider} />
 
-        <h3 style={{ marginTop: 0 }}>Import settings</h3>
-        <p style={{ marginTop: 0, color: "var(--light-body-color)" }}>
+        <h3 className={styles.heading}>Import settings</h3>
+        <p className={styles.description}>
           Assets are imported as a web-sized derivative from Frontify's CDN (not
           the raw original). Defaults: WebP, 2560&nbsp;px, quality 82.
         </p>
 
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="frontify-format" style={labelStyle}>
+        <div className={styles.fieldGroup}>
+          <label htmlFor="frontify-format" className={styles.label}>
             Format
           </label>
           <SelectInput<FormatOption>
@@ -192,8 +203,8 @@ export default function ConfigScreen({ ctx }: Props) {
           />
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="frontify-max-width" style={labelStyle}>
+        <div className={styles.fieldGroup}>
+          <label htmlFor="frontify-max-width" className={styles.label}>
             Max. longest edge (px)
           </label>
           <TextInput
@@ -206,8 +217,8 @@ export default function ConfigScreen({ ctx }: Props) {
           />
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <label htmlFor="frontify-quality" style={labelStyle}>
+        <div className={styles.fieldGroupWide}>
+          <label htmlFor="frontify-quality" className={styles.label}>
             Quality (1–100)
           </label>
           <TextInput
@@ -220,7 +231,12 @@ export default function ConfigScreen({ ctx }: Props) {
           />
         </div>
 
-        <Button buttonType="primary" onClick={saveImportSettings}>
+        <Button
+          buttonType="primary"
+          loading={isSaving}
+          type="button"
+          onClick={saveImportSettings}
+        >
           Save import settings
         </Button>
       </>
