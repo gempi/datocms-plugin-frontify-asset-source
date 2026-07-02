@@ -93,7 +93,7 @@ export default function ConfigScreen({ ctx }: Props) {
                 fullWidth
                 buttonSize="l"
                 buttonType="primary"
-                loading={isRefreshing}
+                disabled={isRefreshing}
                 onClick={async () => {
                   setIsRefreshing(true);
                   try {
@@ -124,7 +124,7 @@ export default function ConfigScreen({ ctx }: Props) {
                 fullWidth
                 buttonSize="l"
                 buttonType="primary"
-                loading={isRevoking}
+                disabled={isRevoking}
                 onClick={async () => {
                   setIsRevoking(true);
                   try {
@@ -151,7 +151,7 @@ export default function ConfigScreen({ ctx }: Props) {
             fullWidth
             buttonSize="l"
             buttonType="primary"
-            loading={isAuthenticating}
+            disabled={isAuthenticating}
             onClick={async () => {
               setIsAuthenticating(true);
               try {
@@ -233,7 +233,7 @@ export default function ConfigScreen({ ctx }: Props) {
 
         <Button
           buttonType="primary"
-          loading={isSaving}
+          disabled={isSaving}
           type="button"
           onClick={saveImportSettings}
         >
