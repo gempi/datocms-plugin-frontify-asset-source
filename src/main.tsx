@@ -4,7 +4,7 @@ import ConfigScreen from "./entrypoints/ConfigScreen";
 import "datocms-react-ui/styles.css";
 import AssetBrowser from "./components/AssetBrowser/AssetBrowser";
 import { cacheExchange, Client, fetchExchange, Provider } from "urql";
-import AppProvider from "./AppContext";
+import AppProvider from "./contexts/AssetBrowserContext";
 import { normalizeConfigParameters } from "./utils/config";
 
 connect({

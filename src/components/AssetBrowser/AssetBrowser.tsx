@@ -8,7 +8,7 @@ import {
 } from "datocms-react-ui";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
-import { AppContext } from "../../AppContext";
+import { AssetBrowserContext } from "../../contexts/AssetBrowserContext";
 import { useRef } from "react";
 import Page from "../Page/Page";
 import { buildUpload, selectUploads } from "../../lib/buildUpload";
@@ -54,7 +54,7 @@ type AssetBrowserProps = {
 
 export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const searchRef = useRef<HTMLInputElement | null>(null);
-  const { hasMore, loading, setLoading } = useContext(AppContext);
+  const { hasMore, loading, setLoading } = useContext(AssetBrowserContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLibraryId, setSelectedLibraryId] = useState("");
   // Default to NEWEST, not RELEVANCE: on open the search box is empty, and
