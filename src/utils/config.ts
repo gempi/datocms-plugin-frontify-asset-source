@@ -63,7 +63,6 @@ function resolveImageOutputFormat(value: unknown): ImportFormat {
 }
 
 function isImageOutputFormat(value: unknown): value is ImportFormat {
-  console.log("value", value);
   return (
     typeof value === "string" &&
     importFormatValues.includes(value as (typeof importFormatValues)[number])

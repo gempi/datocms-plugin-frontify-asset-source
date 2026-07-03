@@ -1,7 +1,7 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 import { useQuery } from "urql";
-import { AssetBrowserContext } from "../../contexts/AssetBrowserContext";
+import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
 import * as stylex from "@stylexjs/stylex";
 
 type PageProps = {
@@ -22,7 +22,7 @@ export default function Page({
   selectedIds,
   onToggle,
 }: PageProps) {
-  const { setHasMore, setLoading } = useContext(AssetBrowserContext);
+  const { setHasMore, setLoading } = useAssetBrowser();
 
   // Frontify's Library.assets returns an empty `items` array (with a non-zero
   // `total`) when browsing without a search term under RELEVANCE (and other

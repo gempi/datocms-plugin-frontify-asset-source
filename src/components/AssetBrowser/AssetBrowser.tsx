@@ -6,9 +6,9 @@ import {
   Spinner,
   TextInput,
 } from "datocms-react-ui";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
-import { AssetBrowserContext } from "../../contexts/AssetBrowserContext";
+import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
 import { useRef } from "react";
 import Page from "../Page/Page";
 import { buildUpload, selectUploads } from "../../lib/buildUpload";
@@ -44,8 +44,8 @@ const SORT_OPTIONS: SelectOption[] = [
   { label: "Relevance", value: "RELEVANCE" },
   { label: "Newest first", value: "NEWEST" },
   { label: "Oldest first", value: "OLDEST" },
-  { label: "Title A–Z", value: "TITLE_ASCENDING" },
-  { label: "Title Z–A", value: "TITLE_DESCENDING" },
+  { label: "Title A-Z", value: "TITLE_ASCENDING" },
+  { label: "Title Z-A", value: "TITLE_DESCENDING" },
 ];
 
 type AssetBrowserProps = {
@@ -54,7 +54,7 @@ type AssetBrowserProps = {
 
 export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const searchRef = useRef<HTMLInputElement | null>(null);
-  const { hasMore, loading, setLoading } = useContext(AssetBrowserContext);
+  const { hasMore, loading, setLoading } = useAssetBrowser();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLibraryId, setSelectedLibraryId] = useState("");
   // Default to NEWEST, not RELEVANCE: on open the search box is empty, and

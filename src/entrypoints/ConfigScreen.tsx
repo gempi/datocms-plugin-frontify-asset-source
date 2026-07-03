@@ -29,7 +29,6 @@ export default function ConfigScreen({ ctx }: Props) {
   const parameters = normalizeConfigParameters(
     ctx.plugin.attributes.parameters,
   );
-  console.log("parameters ConfigScreen", parameters);
   const token = parameters.token;
 
   const [isAuthenticating, setIsAuthenticating] = useState(false);
