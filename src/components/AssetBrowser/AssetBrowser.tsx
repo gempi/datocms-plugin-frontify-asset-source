@@ -7,7 +7,7 @@ import {
   TextInput,
 } from "datocms-react-ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useQuery } from "urql";
+import { useQuery, gql } from "urql";
 import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
 import { useRef } from "react";
 import Page from "../Page/Page";
@@ -40,6 +40,29 @@ interface LibrariesData {
 
 type SelectOption = { label: string; value: string };
 
+const BRANDS_QUERY = gql`
+  query {
+    brands {
+      id
+      name
+    }
+  }
+`;
+
+const BRAND_LIBRARIES_QUERY = gql`
+  query BrandLibraries($id: ID!) {
+    brand(id: $id) {
+      libraries(limit: 100, page: 1) {
+        total
+        items {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
 const SORT_OPTIONS: SelectOption[] = [
   { label: "Relevance", value: "RELEVANCE" },
   { label: "Newest first", value: "NEWEST" },
@@ -69,39 +92,22 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
     },
   ]);
 
-  const [{ data: brandsData, error: brandsError }] = useQuery<BrandsData>({
-    query: `
-      query {
-        brands {
-            id
-            name
-          }
-      }
-    `,
-  });
+  const [{ data: brandsData, error: brandsError, fetching: fetchingBrands }] =
+    useQuery<BrandsData>({
+      query: BRANDS_QUERY,
+    });
 
   const brand = brandsData?.brands?.[0];
 
   // Assets are scoped to a library (the brand-level search resolver is broken
   // server-side), so resolve the brand's libraries and pick one.
-  const [{ data: librariesData, error: librariesError }] =
-    useQuery<LibrariesData>({
-      query: `
-        query BrandLibraries($id: ID!) {
-          brand(id: $id) {
-            libraries(limit: 100, page: 1) {
-              total
-              items {
-                id
-                name
-              }
-            }
-          }
-        }
-      `,
-      pause: !brand,
-      variables: { id: brand?.id },
-    });
+  const [
+    { data: librariesData, error: librariesError, fetching: fetchingLibraries },
+  ] = useQuery<LibrariesData>({
+    query: BRAND_LIBRARIES_QUERY,
+    pause: !brand,
+    variables: { id: brand?.id },
+  });
 
   const libraries = useMemo(
     () => librariesData?.brand?.libraries?.items ?? [],
@@ -130,13 +136,14 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const error = brandsError || librariesError;
 
   useEffect(() => {
+    setLoading(fetchingBrands || fetchingLibraries);
+  }, [fetchingBrands, fetchingLibraries, setLoading]);
+
+  useEffect(() => {
     if (error) {
       ctx.alert(error.message);
-      setLoading(false);
     }
-  }, [error, ctx, setLoading]);
-
-  // Clear the selection when switching libraries.
+  }, [error, ctx]);
   useEffect(() => {
     setSelected(new Map());
   }, [selectedLibraryId]);

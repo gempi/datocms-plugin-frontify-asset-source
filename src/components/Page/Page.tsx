@@ -1,8 +1,57 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { useEffect } from "react";
-import { useQuery } from "urql";
+import { useQuery, gql } from "urql";
 import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
 import * as stylex from "@stylexjs/stylex";
+
+const LIBRARY_ASSETS_QUERY = gql`
+  query LibraryAssets(
+    $id: ID!
+    $limit: Int
+    $page: Int
+    $search: String
+    $sortBy: AssetQueryFilterSortType
+  ) {
+    library(id: $id) {
+      assets(
+        limit: $limit
+        page: $page
+        query: { search: $search, sortBy: $sortBy, types: [IMAGE] }
+      ) {
+        hasNextPage
+        page
+        total
+        items {
+          __typename
+          ... on Image {
+            id
+            title
+            description
+            filename
+            previewThumb: previewUrl(width: 300, height: 300)
+            previewMaster: previewUrl(width: 2560)
+            author
+            alternativeText
+            isDecorative
+            externalId
+            expiresAt
+            focalPoint
+            tags {
+              value
+            }
+            copyright {
+              status
+              notice
+            }
+            licenses {
+              title
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 type PageProps = {
   ctx: RenderAssetSourceCtx;
@@ -32,59 +81,8 @@ export default function Page({
   const hasSearch = typeof searchTerm === "string" && searchTerm.trim() !== "";
   const effectiveSort = hasSearch ? sortBy : "NEWEST";
 
-  const [{ data }] = useQuery({
-    query: `
-      query LibraryAssets(
-        $id: ID!
-        $limit: Int
-        $page: Int
-        $search: String
-        $sortBy: AssetQueryFilterSortType
-      ) {
-        library(id: $id) {
-          assets(
-            limit: $limit
-            page: $page
-            query: {
-              search: $search
-              sortBy: $sortBy
-              types: [IMAGE]
-            }
-          ) {
-            hasNextPage
-            page
-            total
-            items {
-              __typename
-              ... on Image {
-                id
-                title
-                description
-                filename
-                previewThumb: previewUrl(width: 300, height: 300)
-                previewMaster: previewUrl(width: 2560)
-                author
-                alternativeText
-                isDecorative
-                externalId
-                expiresAt
-                focalPoint
-                tags {
-                  value
-                }
-                copyright {
-                  status
-                  notice
-                }
-                licenses {
-                  title
-                }
-              }
-            }
-          }
-        }
-      }
-    `,
+  const [{ data, fetching }] = useQuery({
+    query: LIBRARY_ASSETS_QUERY,
     pause: !libraryId,
     variables: {
       id: libraryId,
@@ -96,13 +94,14 @@ export default function Page({
   });
 
   useEffect(() => {
-    setLoading(true);
+    setLoading(fetching);
 
     if (data?.library?.assets) {
       setHasMore(data.library.assets.hasNextPage);
-      setLoading(false);
+    } else {
+      setHasMore(false);
     }
-  }, [data, setHasMore, setLoading]);
+  }, [data, fetching, setHasMore, setLoading]);
 
   return (
     <>
