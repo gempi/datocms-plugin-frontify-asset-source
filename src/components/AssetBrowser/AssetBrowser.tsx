@@ -11,9 +11,9 @@ import { useQuery } from "urql";
 import { AppContext } from "../../AppContext";
 import { useRef } from "react";
 import Page from "../Page/Page";
-import { getImportSettings } from "../../lib/importSettings";
 import { buildUpload, selectUploads } from "../../lib/buildUpload";
-import styles from "./AssetBrowser.module.css";
+import { normalizeConfigParameters } from "../../utils/config";
+import * as stylex from "@stylexjs/stylex";
 
 interface Brand {
   id: string;
@@ -52,7 +52,7 @@ type AssetBrowserProps = {
   ctx: RenderAssetSourceCtx;
 };
 
-function AssetBrowser({ ctx }: AssetBrowserProps) {
+export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { hasMore, loading, setLoading } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState("");
@@ -128,6 +128,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   }, [selectedLibraryId, searchTerm, sortBy]);
 
   const error = brandsError || librariesError;
+
   useEffect(() => {
     if (error) {
       ctx.alert(error.message);
@@ -159,7 +160,9 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
     if (assets.length === 0) {
       return;
     }
-    const importSettings = getImportSettings(ctx.plugin.attributes.parameters);
+    const { importSettings } = normalizeConfigParameters(
+      ctx.plugin.attributes.parameters,
+    );
     const uploads = assets.map((asset) =>
       buildUpload(asset, importSettings, ctx.site.attributes.locales),
     );
@@ -172,9 +175,9 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   return (
     <Canvas ctx={ctx}>
-      <div className={styles.contentWrapper}>
+      <div {...stylex.props(styles.contentWrapper)}>
         {libraries.length > 1 && (
-          <div className={styles.libraryPicker}>
+          <div {...stylex.props(styles.libraryPicker)}>
             <SelectInput<SelectOption>
               options={libraryOptions}
               value={
@@ -191,7 +194,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
           </div>
         )}
         <form
-          className={styles.searchForm}
+          {...stylex.props(styles.searchForm)}
           onSubmit={(e) => {
             e.preventDefault();
             setSearchTerm(searchRef.current?.value || "");
@@ -206,9 +209,9 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
             Search
           </Button>
         </form>
-        <div className={styles.sortControls}>
+        <div {...stylex.props(styles.sortControls)}>
           <label htmlFor="frontify-sort">Sort by</label>
-          <div className={styles.sortSelectWrapper}>
+          <div {...stylex.props(styles.sortSelectWrapper)}>
             <SelectInput<SelectOption>
               inputId="frontify-sort"
               options={SORT_OPTIONS}
@@ -226,9 +229,9 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
         </div>
       </div>
       {selected.size > 0 && (
-        <div className={styles.actionBar}>
+        <div {...stylex.props(styles.actionBar)}>
           <span>{selected.size} selected</span>
-          <div className={styles.selectedActions}>
+          <div {...stylex.props(styles.selectedActions)}>
             <Button buttonSize="s" onClick={() => setSelected(new Map())}>
               Clear
             </Button>
@@ -242,14 +245,14 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
           </div>
         </div>
       )}
-      <div className={styles.container}>
+      <div {...stylex.props(styles.container)}>
         {loading && (
-          <div className={styles.loadingOverlay}>
+          <div {...stylex.props(styles.loadingOverlay)}>
             <Spinner size={48} placement="centered" />
           </div>
         )}
 
-        <div className={styles.assetGrid}>
+        <div {...stylex.props(styles.assetGrid)}>
           {pageVariables.map((variables, i) => (
             <Page
               ctx={ctx}
@@ -267,7 +270,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
 
       {hasMore && (
         <Button
-          className={styles.loadMoreButton}
+          {...stylex.props(styles.loadMoreButton)}
           buttonType="muted"
           fullWidth
           onClick={() =>
@@ -284,4 +287,60 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   );
 }
 
-export default AssetBrowser;
+const styles = stylex.create({
+  contentWrapper: {
+    paddingBottom: 8,
+  },
+  libraryPicker: {
+    marginBottom: 8,
+  },
+  searchForm: {
+    display: "flex",
+    gap: 8,
+  },
+  sortControls: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+  },
+  sortSelectWrapper: {
+    flex: 1,
+    maxWidth: 240,
+  },
+  actionBar: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    paddingTop: 8,
+    paddingBottom: 8,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomStyle: "solid",
+    borderBottomColor: "var(--border-color, #ddd)",
+  },
+  selectedActions: {
+    display: "flex",
+    gap: 8,
+  },
+  container: {
+    position: "relative",
+    minHeight: 200,
+  },
+  loadingOverlay: {
+    zIndex: 999,
+    height: "100%",
+    position: "absolute",
+    width: "100%",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+  },
+  assetGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    gap: 12,
+  },
+  loadMoreButton: {
+    marginTop: 12,
+  },
+});

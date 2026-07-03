@@ -1,10 +1,11 @@
 import { connect, RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { render } from "./utils/render";
-import ConfigScreen, { ValidParameters } from "./entrypoints/ConfigScreen";
+import ConfigScreen from "./entrypoints/ConfigScreen";
 import "datocms-react-ui/styles.css";
 import AssetBrowser from "./components/AssetBrowser/AssetBrowser";
 import { cacheExchange, Client, fetchExchange, Provider } from "urql";
 import AppProvider from "./AppContext";
+import { normalizeConfigParameters } from "./utils/config";
 
 connect({
   renderConfigScreen(ctx) {
@@ -28,7 +29,9 @@ connect({
     ];
   },
   renderAssetSource(_sourceId: string, ctx: RenderAssetSourceCtx) {
-    const parameters = ctx.plugin.attributes.parameters as ValidParameters;
+    const parameters = normalizeConfigParameters(
+      ctx.plugin.attributes.parameters,
+    );
     const domain = parameters.token?.bearerToken?.domain;
     const accessToken = parameters.token?.bearerToken?.accessToken;
 
