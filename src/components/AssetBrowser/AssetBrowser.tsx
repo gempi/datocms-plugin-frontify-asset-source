@@ -144,6 +144,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
       ctx.alert(error.message);
     }
   }, [error, ctx]);
+
   useEffect(() => {
     setSelected(new Map());
   }, [selectedLibraryId]);
