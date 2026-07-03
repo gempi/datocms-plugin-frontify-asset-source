@@ -16,7 +16,10 @@ import {
 import { useState } from "react";
 import { Form as FormHandler, Field } from "react-final-form";
 import * as stylex from "@stylexjs/stylex";
-import { normalizeConfigParameters } from "../utils/config";
+import {
+  normalizeConfigParameters,
+  NormalizedConfigParameters,
+} from "../utils/config";
 
 type Props = {
   ctx: RenderConfigScreenCtx;
@@ -94,22 +97,11 @@ export default function ConfigScreen({ ctx }: Props) {
             </Button>
           </div>
 
-          <FormHandler
+          <FormHandler<NormalizedConfigParameters>
             initialValues={parameters}
             onSubmit={async (values) => {
-              console.log("values", values);
               try {
-                await ctx.updatePluginParameters({
-                  ...parameters,
-                  importSettings: {
-                    format: values.importSettings.format,
-                    maxWidth: Number.parseInt(
-                      values.importSettings.maxWidth,
-                      10,
-                    ),
-                    quality: Number.parseInt(values.importSettings.quality, 10),
-                  },
-                });
+                await ctx.updatePluginParameters(values);
                 ctx.notice("Settings updated successfully!");
               } catch (err) {
                 ctx.alert("Something went wrong while saving settings.");
@@ -137,6 +129,9 @@ export default function ConfigScreen({ ctx }: Props) {
                           type: "number",
                         }}
                         {...input}
+                        onChange={(value) =>
+                          input.onChange(Number.parseInt(value, 10))
+                        }
                       />
                     )}
                   </Field>
@@ -151,13 +146,14 @@ export default function ConfigScreen({ ctx }: Props) {
                           type: "number",
                         }}
                         {...input}
+                        onChange={(value) =>
+                          input.onChange(Number.parseInt(value, 10))
+                        }
                       />
                     )}
                   </Field>
                   <Field name="importSettings.format">
                     {({ input, meta: { error } }) => {
-                      console.log(input);
-
                       const formatOptions = [
                         {
                           label: "Optimized WebP (recommended)",
@@ -165,8 +161,6 @@ export default function ConfigScreen({ ctx }: Props) {
                         },
                         { label: "Optimized JPEG", value: "jpeg" },
                       ];
-
-                      console.log(input.value);
 
                       return (
                         <SelectField
