@@ -19,6 +19,11 @@ export type NormalizedConfigParameters = {
   importSettings: ImportSettings;
 };
 
+export type AuthCredentials = {
+  domain: string;
+  accessToken: string;
+};
+
 const defaultConfigParameters: NormalizedConfigParameters = {
   token: null,
   importSettings: {
@@ -39,6 +44,24 @@ export function normalizeConfigParameters(
       quality: resolveImageQuality(parameters.importSettings?.quality),
     },
   };
+}
+
+export function resolveAuthCredentials(
+  token: Token | null,
+): AuthCredentials | null {
+  const bearerToken = token?.bearerToken;
+  const domain =
+    typeof bearerToken?.domain === "string" ? bearerToken.domain.trim() : "";
+  const accessToken =
+    typeof bearerToken?.accessToken === "string"
+      ? bearerToken.accessToken.trim()
+      : "";
+
+  if (!domain || !accessToken) {
+    return null;
+  }
+
+  return { domain, accessToken };
 }
 
 function resolveImageQuality(value: unknown): number {
