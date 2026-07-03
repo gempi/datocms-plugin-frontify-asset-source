@@ -109,6 +109,7 @@ export default function Page({
         const selected = selectedIds.has(asset.id);
         return (
           <div
+            role="button"
             key={asset.id}
             onClick={() => onToggle(asset)}
             {...stylex.props(styles.asset, selected && styles.selected)}
