@@ -9,7 +9,6 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, gql } from "urql";
 import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
-import { useRef } from "react";
 import Page from "../Page/Page";
 import { buildUpload, selectUploads } from "../../lib/buildUpload";
 import { normalizeConfigParameters } from "../../utils/config";
@@ -76,7 +75,6 @@ type AssetBrowserProps = {
 };
 
 export default function AssetBrowser({ ctx }: AssetBrowserProps) {
-  const searchRef = useRef<HTMLInputElement | null>(null);
   const { hasMore, loading, setLoading } = useAssetBrowser();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLibraryId, setSelectedLibraryId] = useState("");
@@ -203,14 +201,19 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
         )}
         <form
           {...stylex.props(styles.searchForm)}
-          onSubmit={(e) => {
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
-            setSearchTerm(searchRef.current?.value || "");
+
+            const form = e.currentTarget;
+            const formData = new FormData(form);
+            const searchTerm = formData.get("searchTerm") as string;
+
+            setSearchTerm(searchTerm);
           }}
         >
           <TextInput
-            inputRef={searchRef}
-            type="search"
+            name="searchTerm"
+            type="text"
             placeholder="Search assets"
           />
           <Button type="submit" buttonType="primary">
