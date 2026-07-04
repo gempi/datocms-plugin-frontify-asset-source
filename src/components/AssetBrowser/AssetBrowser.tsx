@@ -85,9 +85,6 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const { hasMore, loading, setLoading } = useAssetBrowser();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedLibraryId, setSelectedLibraryId] = useState<string>("");
-  // Default to NEWEST, not RELEVANCE: on open the search box is empty, and
-  // Frontify's Library.assets returns no items for a relevance sort without a
-  // query term (see Page.tsx). NEWEST is the only sort that reliably browses.
   const [sortBy, setSortBy] = useState<SortValue>("NEWEST");
   const [selected, setSelected] = useState<Map<string, any>>(new Map());
   const [pageVariables, setPageVariables] = useState([
@@ -104,8 +101,6 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   const brand = brandsData?.brands?.[0];
 
-  // Assets are scoped to a library (the brand-level search resolver is broken
-  // server-side), so resolve the brand's libraries and pick one.
   const [
     { data: librariesData, error: librariesError, fetching: fetchingLibraries },
   ] = useQuery<LibrariesData>({
@@ -113,6 +108,8 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
     pause: !brand,
     variables: { id: brand?.id },
   });
+
+  const error = brandsError || librariesError;
 
   const libraries = useMemo(
     () => librariesData?.brand?.libraries?.items ?? [],
@@ -125,20 +122,15 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
     [libraries],
   );
 
-  // Default to the first library once loaded. A picker is only shown when the
-  // brand has more than one library (most brands have exactly one).
   useEffect(() => {
     if (!selectedLibraryId && libraries.length > 0) {
       setSelectedLibraryId(libraries[0].id);
     }
   }, [libraries, selectedLibraryId]);
 
-  // Reset pagination whenever the search term or the selected library changes.
   useEffect(() => {
     setPageVariables([{ page: 1, hasNext: true }]);
   }, [selectedLibraryId, searchTerm, sortBy]);
-
-  const error = brandsError || librariesError;
 
   useEffect(() => {
     setLoading(fetchingBrands || fetchingLibraries);
@@ -157,6 +149,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const toggleSelect = useCallback((asset: any) => {
     setSelected((current) => {
       const next = new Map(current);
+
       if (next.has(asset.id)) {
         next.delete(asset.id);
       } else {
@@ -170,16 +163,21 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   const handleUploadSelected = () => {
     const assets = Array.from(selected.values());
+
     if (assets.length === 0) {
       return;
     }
+
     const { importSettings } = normalizeConfigParameters(
       ctx.plugin.attributes.parameters,
     );
+
     const uploads = assets.map((asset) =>
       buildUpload(asset, importSettings, ctx.site.attributes.locales),
     );
+
     selectUploads(ctx, uploads);
+
     ctx.notice(
       `Imported ${uploads.length} asset${uploads.length > 1 ? "s" : ""}.`,
     );
