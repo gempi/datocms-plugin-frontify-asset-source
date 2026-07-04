@@ -79,7 +79,7 @@ export default function Page({
     pause: !libraryId,
     variables: {
       id: libraryId,
-      limit: 5,
+      limit: 30,
       page: variables.page,
       search: searchTerm,
       sortBy,

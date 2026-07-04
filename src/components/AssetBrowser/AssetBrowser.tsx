@@ -221,7 +221,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
             type="text"
             placeholder="Search assets"
           />
-          <Button type="submit" buttonType="primary">
+          <Button buttonSize="xs" type="submit" buttonType="primary">
             Search
           </Button>
         </form>
