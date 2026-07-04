@@ -37,7 +37,10 @@ interface LibrariesData {
   };
 }
 
-type SelectOption = { label: string; value: string };
+type SelectOption<T = string> = {
+  label: string;
+  value: T;
+};
 
 const BRANDS_QUERY = gql`
   query {
@@ -69,7 +72,7 @@ export type SortValue =
   | "TITLE_ASCENDING"
   | "TITLE_DESCENDING";
 
-const SORT_OPTIONS: SelectOption[] = [
+const SORT_OPTIONS: SelectOption<SortValue>[] = [
   { label: "Relevance", value: "RELEVANCE" },
   { label: "Newest first", value: "NEWEST" },
   { label: "Oldest first", value: "OLDEST" },
@@ -189,7 +192,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
       <div {...stylex.props(styles.contentWrapper)}>
         {libraries.length > 1 && (
           <div {...stylex.props(styles.libraryPicker)}>
-            <SelectInput<SelectOption>
+            <SelectInput
               options={libraryOptions}
               value={
                 libraryOptions.find(
@@ -227,7 +230,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
         </form>
         <div {...stylex.props(styles.sortControls)}>
           <label htmlFor="frontify-sort">Sort by</label>
-          <SelectInput<SelectOption>
+          <SelectInput
             name="frontify-sort"
             id="frontify-sort"
             value={SORT_OPTIONS.find((opt) => opt.value === sortBy)}
