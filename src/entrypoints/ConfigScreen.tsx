@@ -173,7 +173,6 @@ export default function ConfigScreen({ ctx }: Props) {
                             options: formatOptions,
                           }}
                           error={error}
-                          multiple={false}
                           {...input}
                           onChange={(option: any) =>
                             input.onChange(option.value)

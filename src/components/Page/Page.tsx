@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useQuery, gql } from "urql";
 import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
 import * as stylex from "@stylexjs/stylex";
+import { SortValue } from "../AssetBrowser/AssetBrowser";
 
 const LIBRARY_ASSETS_QUERY = gql`
   query LibraryAssets(
@@ -57,8 +58,8 @@ type PageProps = {
   ctx: RenderAssetSourceCtx;
   libraryId: string;
   variables: any;
-  searchTerm: any;
-  sortBy: string;
+  searchTerm: string;
+  sortBy: SortValue;
   selectedIds: Set<string>;
   onToggle: (asset: any) => void;
 };
@@ -73,23 +74,15 @@ export default function Page({
 }: PageProps) {
   const { setHasMore, setLoading } = useAssetBrowser();
 
-  // Frontify's Library.assets returns an empty `items` array (with a non-zero
-  // `total`) when browsing without a search term under RELEVANCE (and other
-  // sorts) — relevance has nothing to rank against. NEWEST is the only sort that
-  // reliably returns assets while browsing, so force it whenever the search box
-  // is empty; the user's chosen sort still applies once they actually search.
-  const hasSearch = typeof searchTerm === "string" && searchTerm.trim() !== "";
-  const effectiveSort = hasSearch ? sortBy : "NEWEST";
-
   const [{ data, fetching }] = useQuery({
     query: LIBRARY_ASSETS_QUERY,
     pause: !libraryId,
     variables: {
       id: libraryId,
-      limit: 30,
+      limit: 5,
       page: variables.page,
       search: searchTerm,
-      sortBy: effectiveSort,
+      sortBy,
     },
   });
 

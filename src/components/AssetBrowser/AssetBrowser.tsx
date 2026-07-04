@@ -62,6 +62,13 @@ const BRAND_LIBRARIES_QUERY = gql`
   }
 `;
 
+export type SortValue =
+  | "RELEVANCE"
+  | "NEWEST"
+  | "OLDEST"
+  | "TITLE_ASCENDING"
+  | "TITLE_DESCENDING";
+
 const SORT_OPTIONS: SelectOption[] = [
   { label: "Relevance", value: "RELEVANCE" },
   { label: "Newest first", value: "NEWEST" },
@@ -76,12 +83,12 @@ type AssetBrowserProps = {
 
 export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const { hasMore, loading, setLoading } = useAssetBrowser();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedLibraryId, setSelectedLibraryId] = useState("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedLibraryId, setSelectedLibraryId] = useState<string>("");
   // Default to NEWEST, not RELEVANCE: on open the search box is empty, and
   // Frontify's Library.assets returns no items for a relevance sort without a
   // query term (see Page.tsx). NEWEST is the only sort that reliably browses.
-  const [sortBy, setSortBy] = useState("NEWEST");
+  const [sortBy, setSortBy] = useState<SortValue>("NEWEST");
   const [selected, setSelected] = useState<Map<string, any>>(new Map());
   const [pageVariables, setPageVariables] = useState([
     {
@@ -222,21 +229,17 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
         </form>
         <div {...stylex.props(styles.sortControls)}>
           <label htmlFor="frontify-sort">Sort by</label>
-          <div {...stylex.props(styles.sortSelectWrapper)}>
-            <SelectInput<SelectOption>
-              inputId="frontify-sort"
-              options={SORT_OPTIONS}
-              value={
-                SORT_OPTIONS.find((option) => option.value === sortBy) ??
-                SORT_OPTIONS[0]
+          <SelectInput<SelectOption>
+            name="frontify-sort"
+            id="frontify-sort"
+            value={SORT_OPTIONS.find((opt) => opt.value === sortBy)}
+            options={SORT_OPTIONS}
+            onChange={(option) => {
+              if (option) {
+                setSortBy(option.value as SortValue);
               }
-              onChange={(option) => {
-                if (option) {
-                  setSortBy(option.value);
-                }
-              }}
-            />
-          </div>
+            }}
+          />
         </div>
       </div>
       {selected.size > 0 && (
