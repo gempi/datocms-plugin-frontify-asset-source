@@ -50,18 +50,23 @@ export function buildFieldMetadata(
   const customData: Record<string, unknown> = {
     frontify_asset_id: asset.id,
   };
+
   if (asset.externalId) {
     customData.frontify_external_id = asset.externalId;
   }
+
   if (asset.copyright?.status) {
     customData.frontify_copyright_status = asset.copyright.status;
   }
+
   if (isDecorative) {
     customData.frontify_is_decorative = true;
   }
+
   if (asset.expiresAt) {
     customData.frontify_expires_at = asset.expiresAt;
   }
+
   const licenseTitles = (asset.licenses ?? [])
     .map((license: any) => license?.title)
     .filter(Boolean);
@@ -82,5 +87,6 @@ export function buildFieldMetadata(
   for (const locale of locales) {
     metadata[locale] = perLocale;
   }
+
   return metadata;
 }

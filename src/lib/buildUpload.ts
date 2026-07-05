@@ -1,10 +1,6 @@
 import type { NewUpload, RenderAssetSourceCtx } from "datocms-plugin-sdk";
-import {
-  buildImportUrl,
-  ImportSettings,
-  toImportFilename,
-} from "./importSettings";
 import { buildFieldMetadata } from "./assetMetadata";
+import { ImportFormat, ImportSettings } from "../utils/config";
 
 /** Build the DatoCMS upload payload for a single Frontify image asset. */
 export function buildUpload(
@@ -44,5 +40,46 @@ export function selectUploads(
   }
   for (const upload of uploads) {
     ctx.select(upload);
+  }
+}
+
+/** Rewrite a filename's extension to match the imported format. */
+export function toImportFilename(
+  filename: string | null | undefined,
+  id: string,
+  format: ImportFormat,
+): string {
+  const base = (filename ?? id).replace(/\.[a-z0-9]{2,4}$/i, "");
+  return `${base}.${importExtension(format)}`;
+}
+
+/** File extension matching the chosen output format. */
+export function importExtension(format: ImportFormat): string {
+  return format === "jpeg" ? "jpg" : "webp";
+}
+
+/**
+ * Turn a Frontify CDN preview URL into the URL DatoCMS should import, applying
+ * the configured format/size/quality. Uses URL parsing (not string concat) so
+ * it is robust regardless of the URL's existing query string.
+ */
+export function buildImportUrl(
+  previewUrl: string,
+  settings: ImportSettings,
+): string {
+  try {
+    const url = new URL(previewUrl);
+    if (settings.maxWidth > 0) {
+      url.searchParams.set("width", String(settings.maxWidth));
+    } else {
+      url.searchParams.delete("width");
+    }
+    // The master derivative is bound by its longest edge; never force a height.
+    url.searchParams.delete("height");
+    url.searchParams.set("format", settings.format);
+    url.searchParams.set("quality", String(settings.quality));
+    return url.toString();
+  } catch {
+    return previewUrl;
   }
 }

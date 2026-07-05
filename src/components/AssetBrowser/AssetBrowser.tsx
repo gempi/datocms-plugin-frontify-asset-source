@@ -6,14 +6,13 @@ import {
   Spinner,
   TextInput,
 } from "datocms-react-ui";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { useQuery } from "urql";
-import { AppContext } from "../../AppContext";
-import { useRef } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery, gql } from "urql";
+import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
 import Page from "../Page/Page";
-import { getImportSettings } from "../../lib/importSettings";
 import { buildUpload, selectUploads } from "../../lib/buildUpload";
-import styles from "./AssetBrowser.module.css";
+import { normalizeConfigParameters } from "../../utils/config";
+import * as stylex from "@stylexjs/stylex";
 
 interface Brand {
   id: string;
@@ -38,29 +37,58 @@ interface LibrariesData {
   };
 }
 
-type SelectOption = { label: string; value: string };
+type SelectOption<T = string> = {
+  label: string;
+  value: T;
+};
 
-const SORT_OPTIONS: SelectOption[] = [
+const BRANDS_QUERY = gql`
+  query {
+    brands {
+      id
+      name
+    }
+  }
+`;
+
+const BRAND_LIBRARIES_QUERY = gql`
+  query BrandLibraries($id: ID!) {
+    brand(id: $id) {
+      libraries(limit: 100, page: 1) {
+        total
+        items {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export type SortValue =
+  | "RELEVANCE"
+  | "NEWEST"
+  | "OLDEST"
+  | "TITLE_ASCENDING"
+  | "TITLE_DESCENDING";
+
+const SORT_OPTIONS: SelectOption<SortValue>[] = [
   { label: "Relevance", value: "RELEVANCE" },
   { label: "Newest first", value: "NEWEST" },
   { label: "Oldest first", value: "OLDEST" },
-  { label: "Title A–Z", value: "TITLE_ASCENDING" },
-  { label: "Title Z–A", value: "TITLE_DESCENDING" },
+  { label: "Title A-Z", value: "TITLE_ASCENDING" },
+  { label: "Title Z-A", value: "TITLE_DESCENDING" },
 ];
 
 type AssetBrowserProps = {
   ctx: RenderAssetSourceCtx;
 };
 
-function AssetBrowser({ ctx }: AssetBrowserProps) {
-  const searchRef = useRef<HTMLInputElement | null>(null);
-  const { hasMore, loading, setLoading } = useContext(AppContext);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedLibraryId, setSelectedLibraryId] = useState("");
-  // Default to NEWEST, not RELEVANCE: on open the search box is empty, and
-  // Frontify's Library.assets returns no items for a relevance sort without a
-  // query term (see Page.tsx). NEWEST is the only sort that reliably browses.
-  const [sortBy, setSortBy] = useState("NEWEST");
+export default function AssetBrowser({ ctx }: AssetBrowserProps) {
+  const { hasMore, loading, setLoading } = useAssetBrowser();
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedLibraryId, setSelectedLibraryId] = useState<string>("");
+  const [sortBy, setSortBy] = useState<SortValue>("NEWEST");
   const [selected, setSelected] = useState<Map<string, any>>(new Map());
   const [pageVariables, setPageVariables] = useState([
     {
@@ -69,39 +97,22 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
     },
   ]);
 
-  const [{ data: brandsData, error: brandsError }] = useQuery<BrandsData>({
-    query: `
-      query {
-        brands {
-            id
-            name
-          }
-      }
-    `,
-  });
+  const [{ data: brandsData, error: brandsError, fetching: fetchingBrands }] =
+    useQuery<BrandsData>({
+      query: BRANDS_QUERY,
+    });
 
   const brand = brandsData?.brands?.[0];
 
-  // Assets are scoped to a library (the brand-level search resolver is broken
-  // server-side), so resolve the brand's libraries and pick one.
-  const [{ data: librariesData, error: librariesError }] =
-    useQuery<LibrariesData>({
-      query: `
-        query BrandLibraries($id: ID!) {
-          brand(id: $id) {
-            libraries(limit: 100, page: 1) {
-              total
-              items {
-                id
-                name
-              }
-            }
-          }
-        }
-      `,
-      pause: !brand,
-      variables: { id: brand?.id },
-    });
+  const [
+    { data: librariesData, error: librariesError, fetching: fetchingLibraries },
+  ] = useQuery<LibrariesData>({
+    query: BRAND_LIBRARIES_QUERY,
+    pause: !brand,
+    variables: { id: brand?.id },
+  });
+
+  const error = brandsError || librariesError;
 
   const libraries = useMemo(
     () => librariesData?.brand?.libraries?.items ?? [],
@@ -114,28 +125,26 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
     [libraries],
   );
 
-  // Default to the first library once loaded. A picker is only shown when the
-  // brand has more than one library (most brands have exactly one).
   useEffect(() => {
     if (!selectedLibraryId && libraries.length > 0) {
       setSelectedLibraryId(libraries[0].id);
     }
   }, [libraries, selectedLibraryId]);
 
-  // Reset pagination whenever the search term or the selected library changes.
   useEffect(() => {
     setPageVariables([{ page: 1, hasNext: true }]);
   }, [selectedLibraryId, searchTerm, sortBy]);
 
-  const error = brandsError || librariesError;
+  useEffect(() => {
+    setLoading(fetchingBrands || fetchingLibraries);
+  }, [fetchingBrands, fetchingLibraries, setLoading]);
+
   useEffect(() => {
     if (error) {
       ctx.alert(error.message);
-      setLoading(false);
     }
-  }, [error, ctx, setLoading]);
+  }, [error, ctx]);
 
-  // Clear the selection when switching libraries.
   useEffect(() => {
     setSelected(new Map());
   }, [selectedLibraryId]);
@@ -143,6 +152,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   const toggleSelect = useCallback((asset: any) => {
     setSelected((current) => {
       const next = new Map(current);
+
       if (next.has(asset.id)) {
         next.delete(asset.id);
       } else {
@@ -156,14 +166,21 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   const handleUploadSelected = () => {
     const assets = Array.from(selected.values());
+
     if (assets.length === 0) {
       return;
     }
-    const importSettings = getImportSettings(ctx.plugin.attributes.parameters);
+
+    const { importSettings } = normalizeConfigParameters(
+      ctx.plugin.attributes.parameters,
+    );
+
     const uploads = assets.map((asset) =>
       buildUpload(asset, importSettings, ctx.site.attributes.locales),
     );
+
     selectUploads(ctx, uploads);
+
     ctx.notice(
       `Imported ${uploads.length} asset${uploads.length > 1 ? "s" : ""}.`,
     );
@@ -172,10 +189,10 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   return (
     <Canvas ctx={ctx}>
-      <div className={styles.contentWrapper}>
+      <div {...stylex.props(styles.contentWrapper)}>
         {libraries.length > 1 && (
-          <div className={styles.libraryPicker}>
-            <SelectInput<SelectOption>
+          <div {...stylex.props(styles.libraryPicker)}>
+            <SelectInput
               options={libraryOptions}
               value={
                 libraryOptions.find(
@@ -191,44 +208,45 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
           </div>
         )}
         <form
-          className={styles.searchForm}
-          onSubmit={(e) => {
+          {...stylex.props(styles.searchForm)}
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
-            setSearchTerm(searchRef.current?.value || "");
+
+            const form = e.currentTarget;
+            const formData = new FormData(form);
+            const searchTerm = formData.get("searchTerm") as string;
+
+            setSearchTerm(searchTerm);
           }}
         >
           <TextInput
-            inputRef={searchRef}
-            type="search"
+            name="searchTerm"
+            type="text"
             placeholder="Search assets"
           />
-          <Button type="submit" buttonType="primary">
+          <Button buttonSize="xs" type="submit" buttonType="primary">
             Search
           </Button>
         </form>
-        <div className={styles.sortControls}>
+        <div {...stylex.props(styles.sortControls)}>
           <label htmlFor="frontify-sort">Sort by</label>
-          <div className={styles.sortSelectWrapper}>
-            <SelectInput<SelectOption>
-              inputId="frontify-sort"
-              options={SORT_OPTIONS}
-              value={
-                SORT_OPTIONS.find((option) => option.value === sortBy) ??
-                SORT_OPTIONS[0]
+          <SelectInput
+            name="frontify-sort"
+            id="frontify-sort"
+            value={SORT_OPTIONS.find((opt) => opt.value === sortBy)}
+            options={SORT_OPTIONS}
+            onChange={(option) => {
+              if (option) {
+                setSortBy(option.value as SortValue);
               }
-              onChange={(option) => {
-                if (option) {
-                  setSortBy(option.value);
-                }
-              }}
-            />
-          </div>
+            }}
+          />
         </div>
       </div>
       {selected.size > 0 && (
-        <div className={styles.actionBar}>
+        <div {...stylex.props(styles.actionBar)}>
           <span>{selected.size} selected</span>
-          <div className={styles.selectedActions}>
+          <div {...stylex.props(styles.selectedActions)}>
             <Button buttonSize="s" onClick={() => setSelected(new Map())}>
               Clear
             </Button>
@@ -242,14 +260,14 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
           </div>
         </div>
       )}
-      <div className={styles.container}>
+      <div {...stylex.props(styles.container)}>
         {loading && (
-          <div className={styles.loadingOverlay}>
+          <div {...stylex.props(styles.loadingOverlay)}>
             <Spinner size={48} placement="centered" />
           </div>
         )}
 
-        <div className={styles.assetGrid}>
+        <div {...stylex.props(styles.assetGrid)}>
           {pageVariables.map((variables, i) => (
             <Page
               ctx={ctx}
@@ -267,7 +285,7 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
 
       {hasMore && (
         <Button
-          className={styles.loadMoreButton}
+          {...stylex.props(styles.loadMoreButton)}
           buttonType="muted"
           fullWidth
           onClick={() =>
@@ -284,4 +302,60 @@ function AssetBrowser({ ctx }: AssetBrowserProps) {
   );
 }
 
-export default AssetBrowser;
+const styles = stylex.create({
+  contentWrapper: {
+    paddingBottom: 8,
+  },
+  libraryPicker: {
+    marginBottom: 8,
+  },
+  searchForm: {
+    display: "flex",
+    gap: 8,
+  },
+  sortControls: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+  },
+  sortSelectWrapper: {
+    flex: 1,
+    maxWidth: 240,
+  },
+  actionBar: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    paddingTop: 8,
+    paddingBottom: 8,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomStyle: "solid",
+    borderBottomColor: "var(--border-color, #ddd)",
+  },
+  selectedActions: {
+    display: "flex",
+    gap: 8,
+  },
+  container: {
+    position: "relative",
+    minHeight: 200,
+  },
+  loadingOverlay: {
+    zIndex: 999,
+    height: "100%",
+    position: "absolute",
+    width: "100%",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+  },
+  assetGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    gap: 12,
+  },
+  loadMoreButton: {
+    marginTop: 12,
+  },
+});

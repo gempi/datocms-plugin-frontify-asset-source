@@ -1,10 +1,14 @@
 import { connect, RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { render } from "./utils/render";
-import ConfigScreen, { ValidParameters } from "./entrypoints/ConfigScreen";
+import ConfigScreen from "./entrypoints/ConfigScreen";
 import "datocms-react-ui/styles.css";
 import AssetBrowser from "./components/AssetBrowser/AssetBrowser";
 import { cacheExchange, Client, fetchExchange, Provider } from "urql";
-import AppProvider from "./AppContext";
+import AppProvider from "./contexts/AssetBrowserContext";
+import {
+  normalizeConfigParameters,
+  resolveAuthCredentials,
+} from "./utils/config";
 
 connect({
   renderConfigScreen(ctx) {
@@ -28,23 +32,24 @@ connect({
     ];
   },
   renderAssetSource(_sourceId: string, ctx: RenderAssetSourceCtx) {
-    const parameters = ctx.plugin.attributes.parameters as ValidParameters;
-    const domain = parameters.token?.bearerToken?.domain;
-    const accessToken = parameters.token?.bearerToken?.accessToken;
+    const parameters = normalizeConfigParameters(
+      ctx.plugin.attributes.parameters,
+    );
+    const auth = resolveAuthCredentials(parameters.token);
 
-    if (!accessToken || !domain) {
+    if (!auth) {
       ctx.alert("Please check your plugin settings!");
       return null;
     }
 
     const client = new Client({
-      url: `https://${domain}/graphql`,
+      url: `https://${auth.domain}/graphql`,
       exchanges: [cacheExchange, fetchExchange],
       fetchOptions: () => {
         return {
           headers: {
             "X-Frontify-Beta": "enabled",
-            Authorization: accessToken ? `Bearer ${accessToken}` : "",
+            Authorization: `Bearer ${auth.accessToken}`,
           },
         };
       },
