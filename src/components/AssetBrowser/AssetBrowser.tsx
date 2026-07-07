@@ -13,6 +13,7 @@ import Page from "../Page/Page";
 import { buildUpload, selectUploads } from "../../lib/buildUpload";
 import { normalizeConfigParameters } from "../../utils/config";
 import * as stylex from "@stylexjs/stylex";
+import { useDebounce } from "../../hooks/useDebounce";
 
 interface Brand {
   id: string;
@@ -87,6 +88,7 @@ type AssetBrowserProps = {
 export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const { hasMore, loading, setLoading } = useAssetBrowser();
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const debouncedQuery = useDebounce(searchTerm, 500);
   const [selectedLibraryId, setSelectedLibraryId] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortValue>("NEWEST");
   const [selected, setSelected] = useState<Map<string, any>>(new Map());
@@ -133,7 +135,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   useEffect(() => {
     setPageVariables([{ page: 1, hasNext: true }]);
-  }, [selectedLibraryId, searchTerm, sortBy]);
+  }, [selectedLibraryId, debouncedQuery, sortBy]);
 
   useEffect(() => {
     setLoading(fetchingBrands || fetchingLibraries);
@@ -207,26 +209,14 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
             />
           </div>
         )}
-        <form
-          {...stylex.props(styles.searchForm)}
-          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
-            e.preventDefault();
-
-            const form = e.currentTarget;
-            const formData = new FormData(form);
-            const searchTerm = formData.get("searchTerm") as string;
-
-            setSearchTerm(searchTerm);
-          }}
-        >
+        <form {...stylex.props(styles.searchForm)}>
           <TextInput
             name="searchTerm"
-            type="text"
+            type="search"
             placeholder="Search assets"
+            value={searchTerm}
+            onChange={(value) => setSearchTerm(value)}
           />
-          <Button buttonSize="xs" type="submit" buttonType="primary">
-            Search
-          </Button>
         </form>
         <div {...stylex.props(styles.sortControls)}>
           <label htmlFor="frontify-sort">Sort by</label>
@@ -274,7 +264,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
               key={i}
               variables={variables}
               libraryId={selectedLibraryId}
-              searchTerm={searchTerm}
+              searchTerm={debouncedQuery}
               sortBy={sortBy}
               selectedIds={selectedIds}
               onToggle={toggleSelect}
