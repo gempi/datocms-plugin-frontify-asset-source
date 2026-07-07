@@ -14,7 +14,7 @@ import {
   Token,
 } from "@frontify/frontify-authenticator";
 import { useState } from "react";
-import { Form as FormHandler, Field } from "react-final-form";
+import { useForm, Controller } from "react-hook-form";
 import * as stylex from "@stylexjs/stylex";
 import {
   normalizeConfigParameters,
@@ -34,6 +34,11 @@ export default function ConfigScreen({ ctx }: Props) {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
+
+  const { control, handleSubmit, formState, reset } =
+    useForm<NormalizedConfigParameters>({
+      defaultValues: parameters,
+    });
 
   return (
     <Canvas ctx={ctx}>
@@ -96,107 +101,111 @@ export default function ConfigScreen({ ctx }: Props) {
             </Button>
           </div>
 
-          <FormHandler<NormalizedConfigParameters>
-            initialValues={parameters}
-            onSubmit={async (values) => {
+          <Form
+            onSubmit={handleSubmit(async (values) => {
               try {
                 await ctx.updatePluginParameters(values);
+                reset(values);
                 ctx.notice("Settings updated successfully!");
               } catch (err) {
                 ctx.alert("Something went wrong while saving settings.");
               }
-            }}
+            })}
           >
-            {({ handleSubmit, submitting, dirty }) => (
-              <Form onSubmit={handleSubmit}>
-                <p>
-                  Assets are imported as a web-sized derivative from Frontify's
-                  CDN (not the raw original)
-                </p>
-                <FieldGroup>
-                  <Field name="importSettings.quality">
-                    {({ input, meta: { error } }) => (
-                      <TextField
-                        id="quality"
-                        label="Quality (1 - 100)"
-                        hint="Default 82"
-                        error={error}
-                        textInputProps={{
-                          min: 1,
-                          max: 100,
-                          step: 1,
-                          type: "number",
-                        }}
-                        {...input}
-                        onChange={(value) =>
-                          input.onChange(Number.parseInt(value, 10))
-                        }
-                      />
-                    )}
-                  </Field>
-                  <Field name="importSettings.maxWidth">
-                    {({ input, meta: { error } }) => (
-                      <TextField
-                        id="maxWidth"
-                        label="Max width in pixels"
-                        hint="Default 2560"
-                        error={error}
-                        textInputProps={{
-                          type: "number",
-                        }}
-                        {...input}
-                        onChange={(value) =>
-                          input.onChange(Number.parseInt(value, 10))
-                        }
-                      />
-                    )}
-                  </Field>
-                  <Field name="importSettings.format">
-                    {({ input, meta: { error } }) => {
-                      const formatOptions = [
-                        {
-                          label: "Optimized WebP (recommended)",
-                          value: "webp",
-                        },
-                        { label: "Optimized JPEG", value: "jpeg" },
-                      ];
-
-                      return (
-                        <SelectField
-                          id="format"
-                          label="Format"
-                          hint="Default WebP"
-                          selectInputProps={{
-                            value: formatOptions.find(
-                              (opt) => opt.value === input.value,
-                            ),
-                            options: formatOptions,
-                          }}
-                          error={error}
-                          {...input}
-                          onChange={(option: any) =>
-                            input.onChange(option.value)
-                          }
-                          value={formatOptions.find(
-                            (opt) => opt.value === input.value,
-                          )}
-                        />
-                      );
+            <p>
+              Assets are imported as a web-sized derivative from Frontify's CDN
+              (not the raw original)
+            </p>
+            <FieldGroup>
+              <Controller
+                control={control}
+                name="importSettings.quality"
+                render={({ field, fieldState }) => (
+                  <TextField
+                    {...field}
+                    id="quality"
+                    label="Quality (1 - 100)"
+                    hint="Default 82"
+                    error={fieldState.error?.message}
+                    textInputProps={{
+                      min: 1,
+                      max: 100,
+                      step: 1,
+                      type: "number",
                     }}
-                  </Field>
-                </FieldGroup>
-                <Button
-                  type="submit"
-                  fullWidth
-                  buttonSize="l"
-                  buttonType="primary"
-                  disabled={submitting || !dirty}
-                >
-                  Save settings
-                </Button>
-              </Form>
-            )}
-          </FormHandler>
+                    onChange={(value) =>
+                      field.onChange(Number.parseInt(value, 10))
+                    }
+                  />
+                )}
+              />
+
+              <Controller
+                control={control}
+                name="importSettings.maxWidth"
+                render={({ field, fieldState }) => (
+                  <TextField
+                    {...field}
+                    id="maxWidth"
+                    label="Max width in pixels"
+                    hint="Default 1920"
+                    error={fieldState.error?.message}
+                    textInputProps={{
+                      type: "number",
+                    }}
+                    onChange={(value) =>
+                      field.onChange(Number.parseInt(value, 10))
+                    }
+                  />
+                )}
+              />
+
+              <Controller
+                control={control}
+                name="importSettings.format"
+                render={({ field, fieldState }) => {
+                  const formatOptions = [
+                    {
+                      label: "Optimized WebP (recommended)",
+                      value: "webp",
+                    },
+                    { label: "Optimized JPEG", value: "jpeg" },
+                  ];
+
+                  return (
+                    <SelectField
+                      {...field}
+                      id="format"
+                      label="Format"
+                      hint="Default WebP"
+                      selectInputProps={{
+                        value: formatOptions.find(
+                          (opt) => opt.value === field.value,
+                        ),
+                        options: formatOptions,
+                      }}
+                      error={fieldState.error?.message}
+                      onChange={(option: any) => field.onChange(option.value)}
+                      value={formatOptions.find(
+                        (opt) => opt.value === field.value,
+                      )}
+                    />
+                  );
+                }}
+              />
+            </FieldGroup>
+            <FieldGroup>
+              <Button
+                type="submit"
+                fullWidth
+                buttonSize="l"
+                buttonType="primary"
+                disabled={formState.isSubmitting || !formState.isDirty}
+              >
+                Save settings
+              </Button>
+            </FieldGroup>
+          </Form>
         </>
       ) : (
         <Button

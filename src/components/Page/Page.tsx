@@ -141,8 +141,6 @@ const styles = stylex.create({
   },
   assetInfo: {
     transition: "0.3s",
-    visibility: "hidden",
-    opacity: 0,
     transitionProperty: "opacity",
     transitionDuration: "0.3s",
     transitionTimingFunction: "linear",
@@ -154,6 +152,10 @@ const styles = stylex.create({
     padding: 12,
     color: "white",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
+    opacity: {
+      default: 0,
+      ":hover": "1",
+    },
   },
   assetDetail: {
     position: "absolute",
@@ -173,7 +175,6 @@ const styles = stylex.create({
     position: "absolute",
     top: 6,
     right: 6,
-    zIndex: 2,
     width: 22,
     height: 22,
     borderRadius: "50%",

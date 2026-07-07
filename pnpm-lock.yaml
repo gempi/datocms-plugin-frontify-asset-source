@@ -32,9 +32,9 @@ importers:
       react-dom:
         specifier: ^19.2.7
         version: 19.2.7(react@19.2.7)
-      react-final-form:
-        specifier: ^7.0.1
-        version: 7.0.1(final-form@4.20.10)(react@19.2.7)
+      react-hook-form:
+        specifier: ^7.81.0
+        version: 7.81.0(react@19.2.7)
       urql:
         specifier: ^5.0.3
         version: 5.0.3(@urql/core@5.2.0)(react@19.2.7)
@@ -741,10 +741,6 @@ packages:
       picomatch:
         optional: true
 
-  final-form@4.20.10:
-    resolution: {integrity: sha512-TL48Pi1oNHeMOHrKv1bCJUrWZDcD3DIG6AGYVNOnyZPr7Bd/pStN0pL+lfzF5BNoj/FclaoiaLenk4XUIFVYng==}
-    engines: {node: '>=8'}
-
   find-root@1.1.0:
     resolution: {integrity: sha512-NKfW6bec6GfKc0SGx1e07QZY9PE99u0Bft/0rzSD5k3sO/vwkVUpDUKVm5Gpp5Ue3YfShPFTX2070tDs5kB9Ng==}
 
@@ -944,11 +940,11 @@ packages:
     peerDependencies:
       react: ^19.2.7
 
-  react-final-form@7.0.1:
-    resolution: {integrity: sha512-8K1ITLecBI7F+jCxiMA/JI1amHT/+klQB+nhl5YFZu3R1sQftbiQk/UfwRDvE7ZxIqIvCf8nYLDQRrfwaDT3kQ==}
+  react-hook-form@7.81.0:
+    resolution: {integrity: sha512-ocbmr2p5KBMoAfj4WCUvped33lVi1Kd5DuDUvQDnB6VEAacOjPI/jMbtDdbhco4y9ct4xUuCmMY0b/C9L0QHjw==}
+    engines: {node: '>=18.0.0'}
     peerDependencies:
-      final-form: ^5.0.0
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react: ^16.8.0 || ^17 || ^18 || ^19
 
   react-intersection-observer@8.34.0:
     resolution: {integrity: sha512-TYKh52Zc0Uptp5/b4N91XydfSGKubEhgZRtcg1rhTKABXijc4Sdr1uTp5lJ8TN27jwUsdXxjHXtHa0kPj704sw==}
@@ -1761,10 +1757,6 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.4
 
-  final-form@4.20.10:
-    dependencies:
-      '@babel/runtime': 7.29.7
-
   find-root@1.1.0: {}
 
   fsevents@2.3.3:
@@ -1916,10 +1908,8 @@ snapshots:
       react: 19.2.7
       scheduler: 0.27.0
 
-  react-final-form@7.0.1(final-form@4.20.10)(react@19.2.7):
+  react-hook-form@7.81.0(react@19.2.7):
     dependencies:
-      '@babel/runtime': 7.29.7
-      final-form: 4.20.10
       react: 19.2.7
 
   react-intersection-observer@8.34.0(react@19.2.7):
