@@ -57,7 +57,10 @@ const LIBRARY_ASSETS_QUERY = gql`
 type PageProps = {
   ctx: RenderAssetSourceCtx;
   libraryId: string;
-  variables: any;
+  variables: {
+    page: number;
+    hasNext: boolean;
+  };
   searchTerm: string;
   sortBy: SortValue;
   selectedIds: Set<string>;
@@ -86,48 +89,52 @@ export default function Page({
     },
   });
 
+  const assets = data?.library?.assets;
+  const items = assets?.items;
+
   useEffect(() => {
     setLoading(fetching);
 
-    if (data?.library?.assets) {
+    if (assets) {
       setHasMore(data.library.assets.hasNextPage);
     } else {
       setHasMore(false);
     }
   }, [data, fetching, setHasMore, setLoading]);
 
-  return (
-    <>
-      {data?.library?.assets?.items?.map((asset: any) => {
-        const selected = selectedIds.has(asset.id);
-        return (
+  if (!items?.length && !fetching) {
+    return <p>No assets found{searchTerm ? ` for "${searchTerm}"` : ""}.</p>;
+  }
+
+  return items?.map((asset: any) => {
+    const selected = selectedIds.has(asset.id);
+
+    return (
+      <div
+        role="button"
+        key={asset.id}
+        onClick={() => onToggle(asset)}
+        {...stylex.props(styles.asset, selected && styles.selected)}
+      >
+        {selected && (
           <div
-            role="button"
-            key={asset.id}
-            onClick={() => onToggle(asset)}
-            {...stylex.props(styles.asset, selected && styles.selected)}
+            aria-hidden="true"
+            {...stylex.props(styles.assetSelectedIndicator)}
           >
-            {selected && (
-              <div
-                aria-hidden="true"
-                {...stylex.props(styles.assetSelectedIndicator)}
-              >
-                ✓
-              </div>
-            )}
-            <div {...stylex.props(styles.assetInfo)}>
-              <div {...stylex.props(styles.assetDetail)}>{asset.title}</div>
-            </div>
-            <img
-              {...stylex.props(styles.assetImage)}
-              src={asset.previewThumb}
-              alt={asset.alternativeText}
-            />
+            ✓
           </div>
-        );
-      })}
-    </>
-  );
+        )}
+        <div {...stylex.props(styles.assetInfo)}>
+          <div {...stylex.props(styles.assetDetail)}>{asset.title}</div>
+        </div>
+        <img
+          {...stylex.props(styles.assetImage)}
+          src={asset.previewThumb}
+          alt={asset.alternativeText}
+        />
+      </div>
+    );
+  });
 }
 
 const styles = stylex.create({
@@ -157,6 +164,7 @@ const styles = stylex.create({
       ":hover": "1",
     },
   },
+
   assetDetail: {
     position: "absolute",
     bottom: 0,

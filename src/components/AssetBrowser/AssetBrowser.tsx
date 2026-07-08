@@ -55,7 +55,7 @@ const BRANDS_QUERY = gql`
 const BRAND_LIBRARIES_QUERY = gql`
   query BrandLibraries($id: ID!) {
     brand(id: $id) {
-      libraries(limit: 100, page: 1) {
+      libraries(limit: 10, page: 1) {
         total
         items {
           id
@@ -89,7 +89,10 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const { hasMore, loading, setLoading } = useAssetBrowser();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedQuery = useDebounce(searchTerm, 500);
-  const [selectedLibraryId, setSelectedLibraryId] = useState<string>("");
+
+  const [selectedLibraryId, setSelectedLibraryId] = useState<string | null>(
+    null,
+  );
   const [sortBy, setSortBy] = useState<SortValue>("NEWEST");
   const [selected, setSelected] = useState<Map<string, any>>(new Map());
   const [pageVariables, setPageVariables] = useState([
@@ -104,14 +107,16 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
       query: BRANDS_QUERY,
     });
 
-  const brand = brandsData?.brands?.[0];
+  const brands = brandsData?.brands;
+
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
 
   const [
     { data: librariesData, error: librariesError, fetching: fetchingLibraries },
   ] = useQuery<LibrariesData>({
     query: BRAND_LIBRARIES_QUERY,
-    pause: !brand,
-    variables: { id: brand?.id },
+    pause: !selectedBrandId,
+    variables: { id: selectedBrandId ?? "" },
   });
 
   const error = brandsError || librariesError;
@@ -126,6 +131,18 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
       libraries.map((library) => ({ label: library.name, value: library.id })),
     [libraries],
   );
+
+  const brandsOptions = useMemo<SelectOption[]>(
+    () =>
+      brands?.map((brand) => ({ label: brand.name, value: brand.id })) ?? [],
+    [brands],
+  );
+
+  useEffect(() => {
+    if (!selectedBrandId && brands && brands.length > 0) {
+      setSelectedBrandId(brands[0].id);
+    }
+  }, [brands, selectedBrandId]);
 
   useEffect(() => {
     if (!selectedLibraryId && libraries.length > 0) {
@@ -192,8 +209,26 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   return (
     <Canvas ctx={ctx}>
       <div {...stylex.props(styles.contentWrapper)}>
+        {brands && brands.length > 1 && (
+          <div {...stylex.props(styles.picker)}>
+            <SelectInput
+              options={brandsOptions}
+              value={
+                brandsOptions.find(
+                  (option) => option.value === selectedBrandId,
+                ) ?? null
+              }
+              onChange={(option) => {
+                if (option) {
+                  setSelectedLibraryId(null);
+                  setSelectedBrandId(option.value);
+                }
+              }}
+            />
+          </div>
+        )}
         {libraries.length > 1 && (
-          <div {...stylex.props(styles.libraryPicker)}>
+          <div {...stylex.props(styles.picker)}>
             <SelectInput
               options={libraryOptions}
               value={
@@ -209,7 +244,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
             />
           </div>
         )}
-        <form {...stylex.props(styles.searchForm)}>
+        <div {...stylex.props(styles.searchForm)}>
           <TextInput
             name="searchTerm"
             type="search"
@@ -217,7 +252,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
             value={searchTerm}
             onChange={(value) => setSearchTerm(value)}
           />
-        </form>
+        </div>
         <div {...stylex.props(styles.sortControls)}>
           <label htmlFor="frontify-sort">Sort by</label>
           <SelectInput
@@ -258,18 +293,19 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
         )}
 
         <div {...stylex.props(styles.assetGrid)}>
-          {pageVariables.map((variables, i) => (
-            <Page
-              ctx={ctx}
-              key={i}
-              variables={variables}
-              libraryId={selectedLibraryId}
-              searchTerm={debouncedQuery}
-              sortBy={sortBy}
-              selectedIds={selectedIds}
-              onToggle={toggleSelect}
-            />
-          ))}
+          {selectedLibraryId &&
+            pageVariables.map((variables) => (
+              <Page
+                key={`${selectedBrandId ?? "brand"}-${selectedLibraryId}-${variables.page}`}
+                ctx={ctx}
+                variables={variables}
+                libraryId={selectedLibraryId}
+                searchTerm={debouncedQuery}
+                sortBy={sortBy}
+                selectedIds={selectedIds}
+                onToggle={toggleSelect}
+              />
+            ))}
         </div>
       </div>
 
@@ -296,7 +332,7 @@ const styles = stylex.create({
   contentWrapper: {
     paddingBottom: 8,
   },
-  libraryPicker: {
+  picker: {
     marginBottom: 8,
   },
   searchForm: {
@@ -338,7 +374,6 @@ const styles = stylex.create({
     height: "100%",
     position: "absolute",
     width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   assetGrid: {
     display: "grid",
