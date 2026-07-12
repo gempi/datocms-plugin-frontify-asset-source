@@ -48,7 +48,6 @@ connect({
       preferGetMethod: false,
       fetchOptions: () => {
         return {
-          method: "POST",
           headers: {
             "X-Frontify-Beta": "enabled",
             Authorization: `Bearer ${auth.accessToken}`,
