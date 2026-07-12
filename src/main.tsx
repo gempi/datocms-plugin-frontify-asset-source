@@ -45,8 +45,10 @@ connect({
     const client = new Client({
       url: `https://${auth.domain}/graphql`,
       exchanges: [cacheExchange, fetchExchange],
+      preferGetMethod: false,
       fetchOptions: () => {
         return {
+          method: "POST",
           headers: {
             "X-Frontify-Beta": "enabled",
             Authorization: `Bearer ${auth.accessToken}`,
