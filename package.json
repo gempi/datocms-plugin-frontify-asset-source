@@ -37,6 +37,7 @@
     "@types/node": "^24.13.2",
     "datocms-plugin-sdk": "^2.2.2",
     "datocms-react-ui": "^2.2.4",
+    "gql.tada": "^1.11.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-hook-form": "^7.81.0",

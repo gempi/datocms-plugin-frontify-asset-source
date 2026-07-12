@@ -1,58 +1,69 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { useEffect } from "react";
-import { useQuery, gql } from "urql";
+import { useQuery } from "urql";
 import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
 import * as stylex from "@stylexjs/stylex";
 import { SortValue } from "../AssetBrowser/AssetBrowser";
+import { graphql, type ResultOf } from "gql.tada";
 
-const LIBRARY_ASSETS_QUERY = gql`
-  query LibraryAssets(
-    $id: ID!
-    $limit: Int
-    $page: Int
-    $search: String
-    $sortBy: AssetQueryFilterSortType
-  ) {
-    library(id: $id) {
-      assets(
-        limit: $limit
-        page: $page
-        query: { search: $search, sortBy: $sortBy, types: [IMAGE] }
-      ) {
-        hasNextPage
-        page
-        total
-        items {
-          __typename
-          ... on Image {
-            id
-            title
-            description
-            filename
-            previewThumb: previewUrl(width: 300, height: 300)
-            previewMaster: previewUrl(width: 2560)
-            author
-            alternativeText
-            isDecorative
-            externalId
-            expiresAt
-            focalPoint
-            tags {
-              value
-            }
-            copyright {
-              status
-              notice
-            }
-            licenses {
-              title
+const LibraryAssetFragment = graphql(`
+  fragment LibraryAsset on Image @_unmask {
+    id
+    title
+    description
+    filename
+    previewThumb: previewUrl(width: 300, height: 300)
+    previewMaster: previewUrl(width: 2560)
+    author
+    alternativeText
+    externalId
+    expiresAt
+    focalPoint
+    tags {
+      value
+    }
+    copyright {
+      status
+      notice
+    }
+    licenses {
+      title
+    }
+  }
+`);
+
+const LibraryAssetsQuery = graphql(
+  `
+    query LibraryAssets(
+      $id: ID!
+      $limit: Int
+      $page: Int
+      $search: String
+      $sortBy: AssetQueryFilterSortType
+    ) {
+      library(id: $id) {
+        assets(
+          limit: $limit
+          page: $page
+          query: { search: $search, sortBy: $sortBy, types: [IMAGE] }
+        ) {
+          hasNextPage
+          page
+          total
+          items {
+            __typename
+            ... on Image {
+              ...LibraryAsset
             }
           }
         }
       }
     }
-  }
-`;
+  `,
+  [LibraryAssetFragment],
+);
+
+export type LibraryAsset = ResultOf<typeof LibraryAssetFragment>;
 
 type PageProps = {
   ctx: RenderAssetSourceCtx;
@@ -64,7 +75,7 @@ type PageProps = {
   searchTerm: string;
   sortBy: SortValue;
   selectedIds: Set<string>;
-  onToggle: (asset: any) => void;
+  onToggle: (asset: LibraryAsset) => void;
 };
 
 export default function Page({
@@ -78,7 +89,7 @@ export default function Page({
   const { setHasMore, setLoading } = useAssetBrowser();
 
   const [{ data, fetching }] = useQuery({
-    query: LIBRARY_ASSETS_QUERY,
+    query: LibraryAssetsQuery,
     pause: !libraryId,
     variables: {
       id: libraryId,
@@ -96,18 +107,24 @@ export default function Page({
     setLoading(fetching);
 
     if (assets) {
-      setHasMore(data.library.assets.hasNextPage);
+      setHasMore(assets.hasNextPage);
     } else {
       setHasMore(false);
     }
-  }, [data, fetching, setHasMore, setLoading]);
+  }, [assets, fetching, setHasMore, setLoading]);
 
   if (!items?.length && !fetching) {
     return <p>No assets found{searchTerm ? ` for "${searchTerm}"` : ""}.</p>;
   }
 
-  return items?.map((asset: any) => {
+  const imageItems = (items ?? []).flatMap((asset) =>
+    asset?.__typename === "Image" ? [asset] : [],
+  );
+
+  return imageItems.map((asset) => {
     const selected = selectedIds.has(asset.id);
+    const previewThumb =
+      typeof asset.previewThumb === "string" ? asset.previewThumb : undefined;
 
     return (
       <div
@@ -129,8 +146,8 @@ export default function Page({
         </div>
         <img
           {...stylex.props(styles.assetImage)}
-          src={asset.previewThumb}
-          alt={asset.alternativeText}
+          src={previewThumb}
+          alt={asset.alternativeText ?? undefined}
         />
       </div>
     );
