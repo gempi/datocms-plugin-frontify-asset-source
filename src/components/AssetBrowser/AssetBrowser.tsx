@@ -7,13 +7,15 @@ import {
   TextInput,
 } from "datocms-react-ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useQuery, gql } from "urql";
+import { useQuery } from "urql";
 import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
 import Page from "../Page/Page";
+import type { LibraryAsset } from "../Page/Page";
 import { buildUpload, selectUploads } from "../../lib/buildUpload";
 import { normalizeConfigParameters } from "../../utils/config";
 import * as stylex from "@stylexjs/stylex";
 import { useDebounce } from "../../hooks/useDebounce";
+import { graphql } from "gql.tada";
 
 interface Brand {
   id: string;
@@ -43,16 +45,16 @@ type SelectOption<T = string> = {
   value: T;
 };
 
-const BRANDS_QUERY = gql`
+const BrandsQuery = graphql(`
   query {
     brands {
       id
       name
     }
   }
-`;
+`);
 
-const BRAND_LIBRARIES_QUERY = gql`
+const BrandLibrariesQuery = graphql(`
   query BrandLibraries($id: ID!) {
     brand(id: $id) {
       libraries(limit: 10, page: 1) {
@@ -64,7 +66,7 @@ const BRAND_LIBRARIES_QUERY = gql`
       }
     }
   }
-`;
+`);
 
 export type SortValue =
   | "RELEVANCE"
@@ -94,7 +96,9 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
     null,
   );
   const [sortBy, setSortBy] = useState<SortValue>("NEWEST");
-  const [selected, setSelected] = useState<Map<string, any>>(new Map());
+  const [selected, setSelected] = useState<Map<string, LibraryAsset>>(
+    new Map(),
+  );
   const [pageVariables, setPageVariables] = useState([
     {
       page: 1,
@@ -104,7 +108,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   const [{ data: brandsData, error: brandsError, fetching: fetchingBrands }] =
     useQuery<BrandsData>({
-      query: BRANDS_QUERY,
+      query: BrandsQuery,
     });
 
   const brands = brandsData?.brands;
@@ -114,7 +118,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const [
     { data: librariesData, error: librariesError, fetching: fetchingLibraries },
   ] = useQuery<LibrariesData>({
-    query: BRAND_LIBRARIES_QUERY,
+    query: BrandLibrariesQuery,
     pause: !selectedBrandId,
     variables: { id: selectedBrandId ?? "" },
   });
@@ -168,7 +172,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
     setSelected(new Map());
   }, [selectedLibraryId]);
 
-  const toggleSelect = useCallback((asset: any) => {
+  const toggleSelect = useCallback((asset: LibraryAsset) => {
     setSelected((current) => {
       const next = new Map(current);
 
