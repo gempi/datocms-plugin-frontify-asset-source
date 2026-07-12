@@ -27,8 +27,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "prepublishOnly": "npm run build"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@frontify/frontify-authenticator": "^2.0.1",
