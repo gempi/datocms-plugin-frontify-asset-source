@@ -1,10 +1,10 @@
 import { connect, RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { render } from "./utils/render";
-import ConfigScreen from "./entrypoints/ConfigScreen";
+import ConfigScreen from "./entrypoints/config-screen";
 import "datocms-react-ui/styles.css";
-import AssetBrowser from "./components/AssetBrowser/AssetBrowser";
+import AssetBrowser from "./components/asset-browser";
 import { cacheExchange, Client, fetchExchange, Provider } from "urql";
-import AppProvider from "./contexts/AssetBrowserContext";
+import AppProvider from "./contexts/asset-browser-context";
 import {
   normalizeConfigParameters,
   resolveAuthCredentials,

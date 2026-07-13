@@ -8,13 +8,13 @@ import {
 } from "datocms-react-ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
-import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
-import Page from "../Page/Page";
-import type { LibraryAsset } from "../Page/Page";
-import { buildUpload, selectUploads } from "../../lib/buildUpload";
-import { normalizeConfigParameters } from "../../utils/config";
+import { useAssetBrowser } from "../contexts/asset-browser-context";
+import Page from "./page";
+import type { LibraryAsset } from "./page";
+import { buildUpload, selectUploads } from "../lib/build-upload";
+import { normalizeConfigParameters } from "../utils/config";
 import * as stylex from "@stylexjs/stylex";
-import { useDebounce } from "../../hooks/useDebounce";
+import { useDebounce } from "../hooks/use-debounce";
 import { graphql } from "gql.tada";
 
 interface Brand {
