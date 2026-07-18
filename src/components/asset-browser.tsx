@@ -8,7 +8,6 @@ import {
 } from "datocms-react-ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
-import { useAssetBrowser } from "../contexts/asset-browser-context";
 import Page from "./page";
 import type { LibraryAsset } from "./page";
 import { buildUpload, selectUploads } from "../lib/build-upload";
@@ -66,7 +65,7 @@ type AssetBrowserProps = {
 };
 
 export default function AssetBrowser({ ctx }: AssetBrowserProps) {
-  const { hasMore, loading, setLoading } = useAssetBrowser();
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedQuery = useDebounce(searchTerm, 500);
 
@@ -80,7 +79,6 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const [pageVariables, setPageVariables] = useState([
     {
       page: 1,
-      hasNext: true,
     },
   ]);
 
@@ -137,7 +135,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   }, [libraryOptions]);
 
   useEffect(() => {
-    setPageVariables([{ page: 1, hasNext: true }]);
+    setPageVariables([{ page: 1 }]);
   }, [selectedLibraryId, debouncedQuery, sortBy]);
 
   useEffect(() => {
@@ -281,38 +279,22 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
           </div>
         )}
 
-        <div {...stylex.props(styles.assetGrid)}>
-          {selectedLibraryId &&
-            pageVariables.map((variables) => (
-              <Page
-                key={`${selectedBrandId ?? "brand"}-${selectedLibraryId}-${variables.page}`}
-                ctx={ctx}
-                variables={variables}
-                libraryId={selectedLibraryId}
-                searchTerm={debouncedQuery}
-                sortBy={sortBy}
-                selectedIds={selectedIds}
-                onToggle={toggleSelect}
-              />
-            ))}
-        </div>
+        {selectedLibraryId &&
+          pageVariables.map((variables, i) => (
+            <Page
+              key={`${selectedBrandId ?? "brand"}-${selectedLibraryId}-${variables.page}`}
+              ctx={ctx}
+              variables={variables}
+              libraryId={selectedLibraryId}
+              searchTerm={debouncedQuery}
+              sortBy={sortBy}
+              selectedIds={selectedIds}
+              onToggle={toggleSelect}
+              onLoadMore={(next) => setPageVariables((prev) => [...prev, next])}
+              isLastPage={i === pageVariables.length - 1}
+            />
+          ))}
       </div>
-
-      {hasMore && (
-        <Button
-          {...stylex.props(styles.loadMoreButton)}
-          buttonType="muted"
-          fullWidth
-          onClick={() =>
-            setPageVariables([
-              ...pageVariables,
-              { page: pageVariables.length + 1, hasNext: false },
-            ])
-          }
-        >
-          Load more...
-        </Button>
-      )}
     </Canvas>
   );
 }
@@ -333,10 +315,6 @@ const styles = stylex.create({
     alignItems: "center",
     gap: 8,
     marginTop: 8,
-  },
-  sortSelectWrapper: {
-    flex: 1,
-    maxWidth: 240,
   },
   actionBar: {
     display: "flex",
@@ -363,13 +341,5 @@ const styles = stylex.create({
     height: "100%",
     position: "absolute",
     width: "100%",
-  },
-  assetGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-    gap: 12,
-  },
-  loadMoreButton: {
-    marginTop: 12,
   },
 });

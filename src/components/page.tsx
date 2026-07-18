@@ -1,10 +1,9 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
-import { useEffect } from "react";
 import { useQuery } from "urql";
-import { useAssetBrowser } from "../contexts/asset-browser-context";
 import * as stylex from "@stylexjs/stylex";
 import { SortValue } from "./asset-browser";
 import { graphql, type ResultOf } from "gql.tada";
+import { Button } from "datocms-react-ui";
 
 const LibraryAssetFragment = graphql(`
   fragment LibraryAsset on Image @_unmask {
@@ -64,18 +63,20 @@ const LibraryAssetsQuery = graphql(
 );
 
 export type LibraryAsset = ResultOf<typeof LibraryAssetFragment>;
+export type PageVariables = { page: number };
 
 type PageProps = {
   ctx: RenderAssetSourceCtx;
   libraryId: string;
   variables: {
     page: number;
-    hasNext: boolean;
   };
   searchTerm: string;
   sortBy: SortValue;
   selectedIds: Set<string>;
   onToggle: (asset: LibraryAsset) => void;
+  onLoadMore: (nextVariables: PageVariables) => void;
+  isLastPage: boolean;
 };
 
 export default function Page({
@@ -85,15 +86,15 @@ export default function Page({
   sortBy,
   selectedIds,
   onToggle,
+  onLoadMore,
+  isLastPage,
 }: PageProps) {
-  const { setHasMore, setLoading } = useAssetBrowser();
-
   const [{ data, fetching }] = useQuery({
     query: LibraryAssetsQuery,
     pause: !libraryId,
     variables: {
       id: libraryId,
-      limit: 30,
+      limit: 16,
       page: variables.page,
       search: searchTerm,
       sortBy,
@@ -103,16 +104,6 @@ export default function Page({
   const assets = data?.library?.assets;
   const items = assets?.items;
 
-  useEffect(() => {
-    setLoading(fetching);
-
-    if (assets) {
-      setHasMore(assets.hasNextPage);
-    } else {
-      setHasMore(false);
-    }
-  }, [assets, fetching, setHasMore, setLoading]);
-
   if (!items?.length && !fetching) {
     return <p>No assets found{searchTerm ? ` for "${searchTerm}"` : ""}.</p>;
   }
@@ -121,37 +112,62 @@ export default function Page({
     asset?.__typename === "Image" ? [asset] : [],
   );
 
-  return imageItems.map((asset) => {
-    const selected = selectedIds.has(asset.id);
-    const previewThumb =
-      typeof asset.previewThumb === "string" ? asset.previewThumb : undefined;
+  return (
+    <>
+      {imageItems && (
+        <>
+          <div {...stylex.props(styles.assetGrid)}>
+            {imageItems.map((asset) => {
+              const selected = selectedIds.has(asset.id);
+              const previewThumb =
+                typeof asset.previewThumb === "string"
+                  ? asset.previewThumb
+                  : undefined;
 
-    return (
-      <div
-        role="button"
-        key={asset.id}
-        onClick={() => onToggle(asset)}
-        {...stylex.props(styles.asset, selected && styles.selected)}
-      >
-        {selected && (
-          <div
-            aria-hidden="true"
-            {...stylex.props(styles.assetSelectedIndicator)}
-          >
-            ✓
+              return (
+                <div
+                  role="button"
+                  key={asset.id}
+                  onClick={() => onToggle(asset)}
+                  {...stylex.props(styles.asset, selected && styles.selected)}
+                >
+                  {selected && (
+                    <div
+                      aria-hidden="true"
+                      {...stylex.props(styles.assetSelectedIndicator)}
+                    >
+                      ✓
+                    </div>
+                  )}
+                  <div {...stylex.props(styles.assetInfo)}>
+                    <div {...stylex.props(styles.assetDetail)}>
+                      {asset.title}
+                    </div>
+                  </div>
+                  <img
+                    {...stylex.props(styles.assetImage)}
+                    src={previewThumb}
+                    alt={asset.alternativeText ?? undefined}
+                  />
+                </div>
+              );
+            })}
           </div>
-        )}
-        <div {...stylex.props(styles.assetInfo)}>
-          <div {...stylex.props(styles.assetDetail)}>{asset.title}</div>
-        </div>
-        <img
-          {...stylex.props(styles.assetImage)}
-          src={previewThumb}
-          alt={asset.alternativeText ?? undefined}
-        />
-      </div>
-    );
-  });
+
+          {isLastPage && assets?.hasNextPage && (
+            <Button
+              {...stylex.props(styles.loadMoreButton)}
+              buttonType="muted"
+              fullWidth
+              onClick={() => onLoadMore({ page: variables.page + 1 })}
+            >
+              Load more...
+            </Button>
+          )}
+        </>
+      )}
+    </>
+  );
 }
 
 const styles = stylex.create({
@@ -159,6 +175,11 @@ const styles = stylex.create({
     position: "relative",
     cursor: "pointer",
     outlineOffset: -3,
+  },
+  assetGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    gap: 12,
   },
   selected: {
     outline: "3px solid var(--accent-color, #1a73e8)",
@@ -181,7 +202,9 @@ const styles = stylex.create({
       ":hover": "1",
     },
   },
-
+  loadMoreButton: {
+    marginTop: 12,
+  },
   assetDetail: {
     position: "absolute",
     bottom: 0,
