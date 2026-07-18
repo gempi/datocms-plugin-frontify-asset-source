@@ -17,29 +17,6 @@ import * as stylex from "@stylexjs/stylex";
 import { useDebounce } from "../hooks/use-debounce";
 import { graphql } from "gql.tada";
 
-interface Brand {
-  id: string;
-  name: string;
-}
-
-interface BrandsData {
-  brands: Brand[];
-}
-
-interface Library {
-  id: string;
-  name: string;
-}
-
-interface LibrariesData {
-  brand: {
-    libraries: {
-      total: number;
-      items: Library[];
-    };
-  };
-}
-
 type SelectOption<T = string> = {
   label: string;
   value: T;
@@ -57,6 +34,7 @@ const BrandsQuery = graphql(`
 const BrandLibrariesQuery = graphql(`
   query BrandLibraries($id: ID!) {
     brand(id: $id) {
+      id
       libraries(limit: 10, page: 1) {
         total
         items {
@@ -96,7 +74,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
     null,
   );
   const [sortBy, setSortBy] = useState<SortValue>("NEWEST");
-  const [selected, setSelected] = useState<Map<string, LibraryAsset>>(
+  const [selectedItems, setSelectedItems] = useState<Map<string, LibraryAsset>>(
     new Map(),
   );
   const [pageVariables, setPageVariables] = useState([
@@ -107,7 +85,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   ]);
 
   const [{ data: brandsData, error: brandsError, fetching: fetchingBrands }] =
-    useQuery<BrandsData>({
+    useQuery({
       query: BrandsQuery,
     });
 
@@ -117,7 +95,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   const [
     { data: librariesData, error: librariesError, fetching: fetchingLibraries },
-  ] = useQuery<LibrariesData>({
+  ] = useQuery({
     query: BrandLibrariesQuery,
     pause: !selectedBrandId,
     variables: { id: selectedBrandId ?? "" },
@@ -132,27 +110,31 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   const libraryOptions = useMemo<SelectOption[]>(
     () =>
-      libraries.map((library) => ({ label: library.name, value: library.id })),
+      libraries
+        .filter((library) => library != null)
+        .map((library) => ({ label: library.name, value: library.id })),
     [libraries],
   );
 
   const brandsOptions = useMemo<SelectOption[]>(
     () =>
-      brands?.map((brand) => ({ label: brand.name, value: brand.id })) ?? [],
+      brands
+        ?.filter((brand) => brand != null)
+        .map((brand) => ({ label: brand.name, value: brand.id })) ?? [],
     [brands],
   );
 
   useEffect(() => {
-    if (!selectedBrandId && brands && brands.length > 0) {
-      setSelectedBrandId(brands[0].id);
+    if (brandsOptions.length > 0) {
+      setSelectedBrandId(brandsOptions[0].value);
     }
-  }, [brands, selectedBrandId]);
+  }, [brandsOptions]);
 
   useEffect(() => {
-    if (!selectedLibraryId && libraries.length > 0) {
-      setSelectedLibraryId(libraries[0].id);
+    if (libraryOptions.length > 0) {
+      setSelectedLibraryId(libraryOptions[0].value);
     }
-  }, [libraries, selectedLibraryId]);
+  }, [libraryOptions]);
 
   useEffect(() => {
     setPageVariables([{ page: 1, hasNext: true }]);
@@ -160,7 +142,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   useEffect(() => {
     setLoading(fetchingBrands || fetchingLibraries);
-  }, [fetchingBrands, fetchingLibraries, setLoading]);
+  }, [fetchingBrands, fetchingLibraries]);
 
   useEffect(() => {
     if (error) {
@@ -169,11 +151,11 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   }, [error, ctx]);
 
   useEffect(() => {
-    setSelected(new Map());
+    setSelectedItems(new Map());
   }, [selectedLibraryId]);
 
   const toggleSelect = useCallback((asset: LibraryAsset) => {
-    setSelected((current) => {
+    setSelectedItems((current) => {
       const next = new Map(current);
 
       if (next.has(asset.id)) {
@@ -185,10 +167,13 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
     });
   }, []);
 
-  const selectedIds = useMemo(() => new Set(selected.keys()), [selected]);
+  const selectedIds = useMemo(
+    () => new Set(selectedItems.keys()),
+    [selectedItems],
+  );
 
   const handleUploadSelected = () => {
-    const assets = Array.from(selected.values());
+    const assets = Array.from(selectedItems.values());
 
     if (assets.length === 0) {
       return;
@@ -207,7 +192,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
     ctx.notice(
       `Imported ${uploads.length} asset${uploads.length > 1 ? "s" : ""}.`,
     );
-    setSelected(new Map());
+    setSelectedItems(new Map());
   };
 
   return (
@@ -272,11 +257,11 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
           />
         </div>
       </div>
-      {selected.size > 0 && (
+      {selectedItems.size > 0 && (
         <div {...stylex.props(styles.actionBar)}>
-          <span>{selected.size} selected</span>
+          <span>{selectedItems.size} selected</span>
           <div {...stylex.props(styles.selectedActions)}>
-            <Button buttonSize="s" onClick={() => setSelected(new Map())}>
+            <Button buttonSize="s" onClick={() => setSelectedItems(new Map())}>
               Clear
             </Button>
             <Button
