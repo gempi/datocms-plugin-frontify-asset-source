@@ -1,5 +1,5 @@
 import type { NewUpload, RenderAssetSourceCtx } from "datocms-plugin-sdk";
-import { buildFieldMetadata } from "./assetMetadata";
+import { buildFieldMetadata } from "./asset-metadata";
 import { ImportFormat, ImportSettings } from "../utils/config";
 
 /** Build the DatoCMS upload payload for a single Frontify image asset. */

@@ -1,9 +1,9 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { useEffect } from "react";
 import { useQuery } from "urql";
-import { useAssetBrowser } from "../../contexts/AssetBrowserContext";
+import { useAssetBrowser } from "../contexts/asset-browser-context";
 import * as stylex from "@stylexjs/stylex";
-import { SortValue } from "../AssetBrowser/AssetBrowser";
+import { SortValue } from "./asset-browser";
 import { graphql, type ResultOf } from "gql.tada";
 
 const LibraryAssetFragment = graphql(`
