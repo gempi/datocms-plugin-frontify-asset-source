@@ -25,6 +25,14 @@ type Props = {
   ctx: RenderConfigScreenCtx;
 };
 
+const FORMAT_OPTIONS = [
+  {
+    label: "Optimized WebP (recommended)",
+    value: "webp",
+  },
+  { label: "Optimized JPEG", value: "jpeg" },
+];
+
 export default function ConfigScreen({ ctx }: Props) {
   const parameters = normalizeConfigParameters(
     ctx.plugin.attributes.parameters,
@@ -125,7 +133,7 @@ export default function ConfigScreen({ ctx }: Props) {
                     {...field}
                     id="quality"
                     label="Quality (1 - 100)"
-                    hint="Default 82"
+                    hint="Default 80"
                     error={fieldState.error?.message}
                     textInputProps={{
                       min: 1,
@@ -163,35 +171,29 @@ export default function ConfigScreen({ ctx }: Props) {
               <Controller
                 control={control}
                 name="importSettings.format"
-                render={({ field, fieldState }) => {
-                  const formatOptions = [
-                    {
-                      label: "Optimized WebP (recommended)",
-                      value: "webp",
-                    },
-                    { label: "Optimized JPEG", value: "jpeg" },
-                  ];
-
-                  return (
-                    <SelectField
-                      {...field}
-                      id="format"
-                      label="Format"
-                      hint="Default WebP"
-                      selectInputProps={{
-                        value: formatOptions.find(
-                          (opt) => opt.value === field.value,
-                        ),
-                        options: formatOptions,
-                      }}
-                      error={fieldState.error?.message}
-                      onChange={(option: any) => field.onChange(option.value)}
-                      value={formatOptions.find(
+                render={({ field, fieldState }) => (
+                  <SelectField
+                    {...field}
+                    id="format"
+                    label="Format"
+                    hint="Default WebP"
+                    selectInputProps={{
+                      value: FORMAT_OPTIONS.find(
                         (opt) => opt.value === field.value,
-                      )}
-                    />
-                  );
-                }}
+                      ),
+                      options: FORMAT_OPTIONS,
+                    }}
+                    error={fieldState.error?.message}
+                    onChange={(option) => {
+                      if (option && "value" in option) {
+                        field.onChange(option.value);
+                      }
+                    }}
+                    value={FORMAT_OPTIONS.find(
+                      (opt) => opt.value === field.value,
+                    )}
+                  />
+                )}
               />
             </FieldGroup>
             <FieldGroup>

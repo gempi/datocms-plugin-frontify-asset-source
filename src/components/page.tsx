@@ -1,7 +1,7 @@
-import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { useQuery } from "urql";
+import { useEffect } from "react";
 import * as stylex from "@stylexjs/stylex";
-import { SortValue } from "./asset-browser";
+import type { SortValue } from "../lib/sort";
 import { graphql, type ResultOf } from "gql.tada";
 import { Button } from "datocms-react-ui";
 
@@ -66,7 +66,6 @@ export type LibraryAsset = ResultOf<typeof LibraryAssetFragment>;
 export type PageVariables = { page: number };
 
 type PageProps = {
-  ctx: RenderAssetSourceCtx;
   libraryId: string;
   variables: {
     page: number;
@@ -76,6 +75,7 @@ type PageProps = {
   selectedIds: Set<string>;
   onToggle: (asset: LibraryAsset) => void;
   onLoadMore: (nextVariables: PageVariables) => void;
+  onFetchingChange: (fetching: boolean) => void;
   isLastPage: boolean;
 };
 
@@ -87,11 +87,14 @@ export default function Page({
   selectedIds,
   onToggle,
   onLoadMore,
+  onFetchingChange,
   isLastPage,
 }: PageProps) {
   const [{ data, fetching }] = useQuery({
     query: LibraryAssetsQuery,
     pause: !libraryId,
+    // Always revalidate: libraries can gain assets while the modal is open.
+    requestPolicy: "cache-and-network",
     variables: {
       id: libraryId,
       limit: 16,
@@ -100,6 +103,17 @@ export default function Page({
       sortBy,
     },
   });
+
+  useEffect(() => {
+    if (!isLastPage) {
+      return;
+    }
+
+    onFetchingChange(fetching);
+    return () => {
+      onFetchingChange(false);
+    };
+  }, [fetching, isLastPage, onFetchingChange]);
 
   const assets = data?.library?.assets;
   const items = assets?.items;
@@ -114,58 +128,50 @@ export default function Page({
 
   return (
     <>
-      {imageItems && (
-        <>
-          <div {...stylex.props(styles.assetGrid)}>
-            {imageItems.map((asset) => {
-              const selected = selectedIds.has(asset.id);
-              const previewThumb =
-                typeof asset.previewThumb === "string"
-                  ? asset.previewThumb
-                  : undefined;
+      <div {...stylex.props(styles.assetGrid)}>
+        {imageItems.map((asset) => {
+          const selected = selectedIds.has(asset.id);
+          const previewThumb =
+            typeof asset.previewThumb === "string"
+              ? asset.previewThumb
+              : undefined;
 
-              return (
-                <div
-                  role="button"
-                  key={asset.id}
-                  onClick={() => onToggle(asset)}
-                  {...stylex.props(styles.asset, selected && styles.selected)}
-                >
-                  {selected && (
-                    <div
-                      aria-hidden="true"
-                      {...stylex.props(styles.assetSelectedIndicator)}
-                    >
-                      ✓
-                    </div>
-                  )}
-                  <div {...stylex.props(styles.assetInfo)}>
-                    <div {...stylex.props(styles.assetDetail)}>
-                      {asset.title}
-                    </div>
-                  </div>
-                  <img
-                    {...stylex.props(styles.assetImage)}
-                    src={previewThumb}
-                    alt={asset.alternativeText ?? undefined}
-                  />
-                </div>
-              );
-            })}
-          </div>
-
-          {isLastPage && assets?.hasNextPage && (
-            <Button
-              {...stylex.props(styles.loadMoreButton)}
-              buttonType="muted"
-              fullWidth
-              onClick={() => onLoadMore({ page: variables.page + 1 })}
+          return (
+            <div
+              key={asset.id}
+              onClick={() => onToggle(asset)}
+              {...stylex.props(styles.asset, selected && styles.selected)}
             >
-              Load more...
-            </Button>
-          )}
-        </>
-      )}
+              {selected ? (
+                <div
+                  aria-hidden="true"
+                  {...stylex.props(styles.assetSelectedIndicator)}
+                >
+                  ✓
+                </div>
+              ) : null}
+              <div {...stylex.props(styles.assetInfo)}>
+                <div {...stylex.props(styles.assetDetail)}>{asset.title}</div>
+              </div>
+              <img
+                {...stylex.props(styles.assetImage)}
+                src={previewThumb}
+                alt={asset.alternativeText ?? undefined}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {isLastPage && assets?.hasNextPage ? (
+        <Button
+          buttonType="muted"
+          fullWidth
+          onClick={() => onLoadMore({ page: variables.page + 1 })}
+        >
+          Load more...
+        </Button>
+      ) : null}
     </>
   );
 }
@@ -175,14 +181,18 @@ const styles = stylex.create({
     position: "relative",
     cursor: "pointer",
     outlineOffset: -3,
+    contentVisibility: "auto",
+    containIntrinsicSize: "auto 200px",
+    borderRadius: "4px",
+    boxShadow: "0 0 0 1px var(--color--border)",
   },
   assetGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-    gap: 12,
+    gap: 24,
   },
   selected: {
-    outline: "3px solid var(--accent-color, #1a73e8)",
+    boxShadow: "0 0 0 3px var(--color--selected--border)",
   },
   assetInfo: {
     transition: "0.3s",
@@ -201,9 +211,6 @@ const styles = stylex.create({
       default: 0,
       ":hover": "1",
     },
-  },
-  loadMoreButton: {
-    marginTop: 12,
   },
   assetDetail: {
     position: "absolute",
@@ -226,12 +233,13 @@ const styles = stylex.create({
     width: 22,
     height: 22,
     borderRadius: "50%",
-    backgroundColor: "var(--accent-color, #1a73e8)",
+    backgroundColor: "var(--accent-color, var(--color--selected--border))",
     color: "#fff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: 14,
     lineHeight: 1,
+    zIndex: 1,
   },
 });
