@@ -3,11 +3,7 @@ import { buildFieldMetadata } from "./asset-metadata";
 import { ImportFormat, ImportSettings } from "../utils/config";
 
 /** Build the DatoCMS upload payload for a single Frontify image asset. */
-export function buildUpload(
-  asset: any,
-  settings: ImportSettings,
-  locales: string[],
-): NewUpload {
+export function buildUpload(asset: any, settings: ImportSettings, locales: string[]): NewUpload {
   return {
     resource: {
       url: buildImportUrl(asset.previewMaster, settings),
@@ -29,10 +25,7 @@ type BatchSelectionContext = RenderAssetSourceCtx & {
 };
 
 /** Send one or more uploads to DatoCMS in a single user action. */
-export function selectUploads(
-  ctx: RenderAssetSourceCtx,
-  uploads: NewUpload[],
-): void {
+export function selectUploads(ctx: RenderAssetSourceCtx, uploads: NewUpload[]): void {
   const batchCtx = ctx as BatchSelectionContext;
   if (uploads.length > 1 && typeof batchCtx.selectMultiple === "function") {
     batchCtx.selectMultiple(uploads);
@@ -63,10 +56,7 @@ export function importExtension(format: ImportFormat): string {
  * the configured format/size/quality. Uses URL parsing (not string concat) so
  * it is robust regardless of the URL's existing query string.
  */
-export function buildImportUrl(
-  previewUrl: string,
-  settings: ImportSettings,
-): string {
+export function buildImportUrl(previewUrl: string, settings: ImportSettings): string {
   try {
     const url = new URL(previewUrl);
     if (settings.maxWidth > 0) {

@@ -752,14 +752,12 @@ type Audio implements Node & Asset {
     """
     **DEPRECATED** `Audio` preview width value in pixels. This field will be removed. | Date: 2027-01-01
     """
-    width: Int
-      @deprecated(reason: "This field will be removed. | Date: 2027-01-01")
+    width: Int @deprecated(reason: "This field will be removed. | Date: 2027-01-01")
 
     """
     **DEPRECATED** `Audio` preview height value in pixels. This field will be removed. | Date: 2027-01-01
     """
-    height: Int
-      @deprecated(reason: "This field will be removed. | Date: 2027-01-01")
+    height: Int @deprecated(reason: "This field will be removed. | Date: 2027-01-01")
   ): Url!
 
   """
@@ -1035,26 +1033,22 @@ type MetadataValue {
   """
   **DEPRECATED** `User` who created the `MetadataValue`. This field will be removed. | Date: 2026-07-01
   """
-  creator: User!
-    @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
+  creator: User! @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
 
   """
   **DEPRECATED** `DateTime` of the `MetadataValue` creation. This field will be removed. | Date: 2026-07-01
   """
-  createdAt: DateTime!
-    @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
+  createdAt: DateTime! @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
 
   """
   **DEPRECATED** `User` who last modified the `MetadataValue`. This field will be removed. | Date: 2026-07-01
   """
-  modifier: User
-    @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
+  modifier: User @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
 
   """
   **DEPRECATED** `DateTime` of the `MetadataValue`'s last modification. This field will be removed. | Date: 2026-07-01
   """
-  modifiedAt: DateTime
-    @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
+  modifiedAt: DateTime @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
 
   """
   **DEPRECATED** `MetadataField` associated to `MetadataValue`. This field will be removed. | Date: 2026-07-01
@@ -1153,8 +1147,7 @@ type MetadataField {
   """
   **DEPRECATED** Allow an empty value as a valid `SELECT` type `MetadataField` value. This field will be removed. | Date: 2026-07-01
   """
-  allowEmptyValue: Boolean!
-    @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
+  allowEmptyValue: Boolean! @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
 
   """
   **DEPRECATED** Allow users to search for `MetadataField` values. This field will be removed. Use `CustomMetadataProperty.isSearchable` instead. | Date: 2026-07-01
@@ -1167,8 +1160,7 @@ type MetadataField {
   """
   **DEPRECATED** Allow users to edit `MetadataField` values. This field will be removed. | Date: 2026-07-01
   """
-  isEditable: Boolean!
-    @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
+  isEditable: Boolean! @deprecated(reason: "This field will be removed. | Date: 2026-07-01")
 
   """
   **DEPRECATED** Show/hide `MetadataField` values. This field will be removed. Use `CustomMetadataProperty.isViewable` instead. | Date: 2026-07-01
@@ -1641,12 +1633,7 @@ enum ProjectType {
   WORKSPACE
 }
 
-union Project =
-  | MediaLibrary
-  | IconLibrary
-  | LogoLibrary
-  | DocumentLibrary
-  | Workspace
+union Project = MediaLibrary | IconLibrary | LogoLibrary | DocumentLibrary | Workspace
 
 """
 `LibraryInterface` for `Library` returnable types.
@@ -1774,9 +1761,7 @@ input AssetQueryInput {
   **DEPRECATED** Filter the `Asset` types present in the result set. This field will be removed. Use `types` instead. | Date: 2022-07-01
   """
   type: [AssetType]
-    @deprecated(
-      reason: "This field will be removed. Use `types` instead. | Date: 2022-07-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `types` instead. | Date: 2022-07-01")
 
   """
   Limit the result set by the `Asset` types.
@@ -1960,9 +1945,7 @@ type LibraryRootFolder {
     """
     page: Int = 1
   ): SubFolderItems!
-    @deprecated(
-      reason: "This field will be removed. Use `folders` instead. | Date: 2025-07-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `folders` instead. | Date: 2025-07-01")
 
   """
   The `FolderItems` of the current `Library`/`Workspace`.
@@ -2075,9 +2058,7 @@ interface Folder {
     """
     page: Int = 1
   ): SubFolderItems!
-    @deprecated(
-      reason: "This field will be removed. Use `folders` instead. | Date: 2025-07-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `folders` instead. | Date: 2025-07-01")
 
   """
   The `FolderItems` of the current `Library`/`Workspace`/`Folder`.
@@ -2213,9 +2194,7 @@ type WorkspaceRootFolder {
     """
     page: Int = 1
   ): SubFolderItems!
-    @deprecated(
-      reason: "This field will be removed. Use `folders` instead. | Date: 2025-07-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `folders` instead. | Date: 2025-07-01")
 
   """
   The `FolderItems` of the current `Library`/`Workspace`.
@@ -2416,8 +2395,7 @@ type CreativeTemplate {
   """
   **DEPRECATED** Id of the `Brand` of the `CreativeTemplate`. This field will be removed. | Date: 2027-01-01
   """
-  brandId: ID!
-    @deprecated(reason: "This field will be removed. | Date: 2027-01-01")
+  brandId: ID! @deprecated(reason: "This field will be removed. | Date: 2027-01-01")
 
   """
   Name of the `CreativeTemplate`.
@@ -2457,8 +2435,7 @@ type CreativeTemplate {
   """
   **DEPRECATED** Retrieve Asset ID. This field will be removed. | Date: 2027-01-01
   """
-  assetId: ID
-    @deprecated(reason: "This field will be removed. | Date: 2027-01-01")
+  assetId: ID @deprecated(reason: "This field will be removed. | Date: 2027-01-01")
 
   """
   Tags of the `CreativeTemplate`.
@@ -2645,8 +2622,7 @@ type Collection implements Node {
   """
   **DEPRECATED** `Collection`'s privacy state setting. This field will be removed. | Date: 2024-01-01
   """
-  isPrivate: Boolean
-    @deprecated(reason: "This field will be removed. | Date: 2024-01-01")
+  isPrivate: Boolean @deprecated(reason: "This field will be removed. | Date: 2024-01-01")
 
   """
   `Collection`'s permissions of the current `User`.
@@ -4509,9 +4485,7 @@ type SubFolder implements Node & Folder {
     """
     page: Int = 1
   ): SubFolderItems!
-    @deprecated(
-      reason: "This field will be removed. Use `folders` instead. | Date: 2025-07-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `folders` instead. | Date: 2025-07-01")
 
   """
   The `FolderItems` of the current `Folder`.
@@ -5967,9 +5941,7 @@ input CreateAssetInput {
   **DEPRECATED** `Library` or `Workspace` Id. This value is ignored if `parentId` is set. This field will be removed. Use `parentId` instead. | Date: 2023-07-01
   """
   projectId: ID
-    @deprecated(
-      reason: "This field will be removed. Use `parentId` instead. | Date: 2023-07-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `parentId` instead. | Date: 2023-07-01")
 
   """
   File Id. Signed Id returned in `uploadFile`.
@@ -6024,8 +5996,7 @@ input CreateAssetInput {
   """
   **DEPRECATED** `Asset` workflow status. Workflow logic will be automatically managed if not properly set. This field will be removed. | Date: 2022-07-01
   """
-  workflowStatus: String
-    @deprecated(reason: "This field will be removed. | Date: 2022-07-01")
+  workflowStatus: String @deprecated(reason: "This field will be removed. | Date: 2022-07-01")
 
   """
   `Asset` will become available only during the interval.When undefined or `null` the `Asset` will be immediately and indefinitely available.
@@ -6598,9 +6569,7 @@ type DeleteAsset {
   **DEPRECATED** `Asset` details. This field will be removed. Use `id` instead. | Date: 2024-01-01
   """
   asset: Asset!
-    @deprecated(
-      reason: "This field will be removed. Use `id` instead. | Date: 2024-01-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `id` instead. | Date: 2024-01-01")
 }
 
 input DeleteAttachmentInput {
@@ -6620,9 +6589,7 @@ type DeleteAttachment {
   **DEPRECATED** `Attachment` details. This field will be removed. Use `id` instead. | Date: 2024-01-01
   """
   attachment: Attachment!
-    @deprecated(
-      reason: "This field will be removed. Use `id` instead. | Date: 2024-01-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `id` instead. | Date: 2024-01-01")
 }
 
 input DeleteAssetVariantInput {
@@ -6661,9 +6628,7 @@ type DeleteCollection {
   **DEPRECATED** `Collection` details. This field will be removed. Use `id` instead. | Date: 2024-01-01
   """
   collection: Collection!
-    @deprecated(
-      reason: "This field will be removed. Use `id` instead. | Date: 2024-01-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `id` instead. | Date: 2024-01-01")
 }
 
 input DeleteCommentInput {
@@ -6683,9 +6648,7 @@ type DeleteComment {
   **DEPRECATED** `Comment` details. This field will be removed. Use `id` instead. | Date: 2024-01-01
   """
   comment: Comment!
-    @deprecated(
-      reason: "This field will be removed. Use `id` instead. | Date: 2024-01-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `id` instead. | Date: 2024-01-01")
 }
 
 input DeleteCustomMetadataPropertyInput {
@@ -6747,9 +6710,7 @@ type DeleteMetadataField {
   **DEPRECATED** Deleted `MetadataField`. This field will be removed. Use `id` instead. | Date: 2024-01-01
   """
   metadataField: MetadataField!
-    @deprecated(
-      reason: "This field will be removed. Use `id` instead. | Date: 2024-01-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `id` instead. | Date: 2024-01-01")
 }
 
 input EditCommentInput {
@@ -7549,9 +7510,7 @@ type UninstallWebhook {
   **DEPRECATED** `Webhook` details. This field will be removed. Use `id` instead. | Date: 2026-07-01
   """
   webhook: Webhook!
-    @deprecated(
-      reason: "This field will be removed. Use `id` instead. | Date: 2026-07-01"
-    )
+    @deprecated(reason: "This field will be removed. Use `id` instead. | Date: 2026-07-01")
 
   """
   The Id of the deleted `Webhook`.

@@ -132,9 +132,7 @@ export default function Page({
         {imageItems.map((asset) => {
           const selected = selectedIds.has(asset.id);
           const previewThumb =
-            typeof asset.previewThumb === "string"
-              ? asset.previewThumb
-              : undefined;
+            typeof asset.previewThumb === "string" ? asset.previewThumb : undefined;
 
           return (
             <div
@@ -143,10 +141,7 @@ export default function Page({
               {...stylex.props(styles.asset, selected && styles.selected)}
             >
               {selected ? (
-                <div
-                  aria-hidden="true"
-                  {...stylex.props(styles.assetSelectedIndicator)}
-                >
+                <div aria-hidden="true" {...stylex.props(styles.assetSelectedIndicator)}>
                   ✓
                 </div>
               ) : null}

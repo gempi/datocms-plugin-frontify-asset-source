@@ -1,11 +1,5 @@
 import { RenderAssetSourceCtx } from "datocms-plugin-sdk";
-import {
-  Button,
-  Canvas,
-  SelectInput,
-  Spinner,
-  TextInput,
-} from "datocms-react-ui";
+import { Button, Canvas, SelectInput, Spinner, TextInput } from "datocms-react-ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
 import Page from "./page";
@@ -54,20 +48,15 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedQuery = useDebounce(searchTerm, 500);
 
-  const [selectedLibraryId, setSelectedLibraryId] = useState<string | null>(
-    null,
-  );
+  const [selectedLibraryId, setSelectedLibraryId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortValue>("NEWEST");
-  const [selectedItems, setSelectedItems] = useState(
-    () => new Map<string, LibraryAsset>(),
-  );
+  const [selectedItems, setSelectedItems] = useState(() => new Map<string, LibraryAsset>());
   const [pageVariables, setPageVariables] = useState(() => [{ page: 1 }]);
   const [fetchingAssets, setFetchingAssets] = useState(false);
 
-  const [{ data: brandsData, error: brandsError, fetching: fetchingBrands }] =
-    useQuery({
-      query: BrandsQuery,
-    });
+  const [{ data: brandsData, error: brandsError, fetching: fetchingBrands }] = useQuery({
+    query: BrandsQuery,
+  });
 
   const brands = brandsData?.brands;
 
@@ -81,15 +70,11 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
 
-  const effectiveBrandId = brandsOptions.some(
-    (option) => option.value === selectedBrandId,
-  )
+  const effectiveBrandId = brandsOptions.some((option) => option.value === selectedBrandId)
     ? selectedBrandId
     : (brandsOptions[0]?.value ?? null);
 
-  const [
-    { data: librariesData, error: librariesError, fetching: fetchingLibraries },
-  ] = useQuery({
+  const [{ data: librariesData, error: librariesError, fetching: fetchingLibraries }] = useQuery({
     query: BrandLibrariesQuery,
     pause: !effectiveBrandId,
     requestPolicy: "cache-and-network",
@@ -113,9 +98,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
     [libraries],
   );
 
-  const effectiveLibraryId = libraryOptions.some(
-    (option) => option.value === selectedLibraryId,
-  )
+  const effectiveLibraryId = libraryOptions.some((option) => option.value === selectedLibraryId)
     ? selectedLibraryId
     : (libraryOptions[0]?.value ?? null);
 
@@ -156,9 +139,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
       return;
     }
 
-    const { importSettings } = normalizeConfigParameters(
-      ctx.plugin.attributes.parameters,
-    );
+    const { importSettings } = normalizeConfigParameters(ctx.plugin.attributes.parameters);
 
     const uploads = assets.map((asset) =>
       buildUpload(asset, importSettings, ctx.site.attributes.locales),
@@ -166,9 +147,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
 
     selectUploads(ctx, uploads);
 
-    ctx.notice(
-      `Imported ${uploads.length} asset${uploads.length > 1 ? "s" : ""}.`,
-    );
+    ctx.notice(`Imported ${uploads.length} asset${uploads.length > 1 ? "s" : ""}.`);
     setSelectedItems(new Map());
   };
 
@@ -178,11 +157,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
         <div {...stylex.props(styles.picker)}>
           <SelectInput
             options={brandsOptions}
-            value={
-              brandsOptions.find(
-                (option) => option.value === effectiveBrandId,
-              ) ?? null
-            }
+            value={brandsOptions.find((option) => option.value === effectiveBrandId) ?? null}
             onChange={(option) => {
               if (option) {
                 setSelectedLibraryId(null);
@@ -198,11 +173,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
         <div {...stylex.props(styles.picker)}>
           <SelectInput
             options={libraryOptions}
-            value={
-              libraryOptions.find(
-                (option) => option.value === effectiveLibraryId,
-              ) ?? null
-            }
+            value={libraryOptions.find((option) => option.value === effectiveLibraryId) ?? null}
             onChange={(option) => {
               if (option) {
                 setSelectedLibraryId(option.value);
@@ -244,11 +215,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
             <Button buttonSize="s" onClick={() => setSelectedItems(new Map())}>
               Clear
             </Button>
-            <Button
-              buttonSize="s"
-              buttonType="primary"
-              onClick={handleUploadSelected}
-            >
+            <Button buttonSize="s" buttonType="primary" onClick={handleUploadSelected}>
               Upload selected
             </Button>
           </div>
@@ -272,9 +239,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
                   sortBy={sortBy}
                   selectedIds={selectedIds}
                   onToggle={toggleSelect}
-                  onLoadMore={(next) =>
-                    setPageVariables((prev) => [...prev, next])
-                  }
+                  onLoadMore={(next) => setPageVariables((prev) => [...prev, next])}
                   onFetchingChange={setFetchingAssets}
                   isLastPage={i === pageVariables.length - 1}
                 />

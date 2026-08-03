@@ -4,10 +4,7 @@ import ConfigScreen from "./entrypoints/config-screen";
 import "datocms-react-ui/styles.css";
 import AssetBrowser from "./components/asset-browser";
 import { cacheExchange, Client, fetchExchange, Provider } from "urql";
-import {
-  normalizeConfigParameters,
-  resolveAuthCredentials,
-} from "./utils/config";
+import { normalizeConfigParameters, resolveAuthCredentials } from "./utils/config";
 
 connect({
   renderConfigScreen(ctx) {
@@ -31,9 +28,7 @@ connect({
     ];
   },
   renderAssetSource(_sourceId: string, ctx: RenderAssetSourceCtx) {
-    const parameters = normalizeConfigParameters(
-      ctx.plugin.attributes.parameters,
-    );
+    const parameters = normalizeConfigParameters(ctx.plugin.attributes.parameters);
     const auth = resolveAuthCredentials(parameters.token);
 
     if (!auth) {

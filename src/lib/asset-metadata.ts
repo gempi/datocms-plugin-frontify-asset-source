@@ -17,19 +17,10 @@ export interface FieldMetadata {
 // Frontify focalPoint is `[Float]`. DatoCMS expects normalized x/y in [0, 1];
 // only map it when the values actually fall in that range, otherwise omit it
 // (a wrong focal point would fail upload validation).
-function toFocalPoint(
-  focalPoint: unknown,
-): { x: number; y: number } | undefined {
+function toFocalPoint(focalPoint: unknown): { x: number; y: number } | undefined {
   if (Array.isArray(focalPoint) && focalPoint.length >= 2) {
     const [x, y] = focalPoint;
-    if (
-      typeof x === "number" &&
-      typeof y === "number" &&
-      x >= 0 &&
-      x <= 1 &&
-      y >= 0 &&
-      y <= 1
-    ) {
+    if (typeof x === "number" && typeof y === "number" && x >= 0 && x <= 1 && y >= 0 && y <= 1) {
       return { x, y };
     }
   }
@@ -37,14 +28,9 @@ function toFocalPoint(
 }
 
 /** Build the per-locale `default_field_metadata` map for `ctx.select()`. */
-export function buildFieldMetadata(
-  asset: any,
-  locales: string[],
-): Record<string, FieldMetadata> {
+export function buildFieldMetadata(asset: any, locales: string[]): Record<string, FieldMetadata> {
   const isDecorative = Boolean(asset.isDecorative);
-  const alt = isDecorative
-    ? ""
-    : asset.alternativeText || asset.description || null;
+  const alt = isDecorative ? "" : asset.alternativeText || asset.description || null;
   const title = asset.title || null;
 
   const customData: Record<string, unknown> = {

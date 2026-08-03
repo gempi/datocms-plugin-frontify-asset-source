@@ -1,25 +1,10 @@
 import type { RenderConfigScreenCtx } from "datocms-plugin-sdk";
-import {
-  Button,
-  Canvas,
-  FieldGroup,
-  TextField,
-  Form,
-  SelectField,
-} from "datocms-react-ui";
-import {
-  authorize,
-  refresh,
-  revoke,
-  Token,
-} from "@frontify/frontify-authenticator";
+import { Button, Canvas, FieldGroup, TextField, Form, SelectField } from "datocms-react-ui";
+import { authorize, refresh, revoke, Token } from "@frontify/frontify-authenticator";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import * as stylex from "@stylexjs/stylex";
-import {
-  normalizeConfigParameters,
-  NormalizedConfigParameters,
-} from "../utils/config";
+import { normalizeConfigParameters, NormalizedConfigParameters } from "../utils/config";
 
 type Props = {
   ctx: RenderConfigScreenCtx;
@@ -34,19 +19,16 @@ const FORMAT_OPTIONS = [
 ];
 
 export default function ConfigScreen({ ctx }: Props) {
-  const parameters = normalizeConfigParameters(
-    ctx.plugin.attributes.parameters,
-  );
+  const parameters = normalizeConfigParameters(ctx.plugin.attributes.parameters);
   const token = parameters.token;
 
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
 
-  const { control, handleSubmit, formState, reset } =
-    useForm<NormalizedConfigParameters>({
-      defaultValues: parameters,
-    });
+  const { control, handleSubmit, formState, reset } = useForm<NormalizedConfigParameters>({
+    defaultValues: parameters,
+  });
 
   return (
     <Canvas ctx={ctx}>
@@ -69,7 +51,7 @@ export default function ConfigScreen({ ctx }: Props) {
                     token: newToken,
                   });
                   ctx.notice("Successfully received a new token!");
-                } catch (err) {
+                } catch {
                   await ctx.updatePluginParameters({
                     ...parameters,
                     token: null,
@@ -98,7 +80,7 @@ export default function ConfigScreen({ ctx }: Props) {
                     token: null,
                   });
                   ctx.notice("Successfully revoked your token!");
-                } catch (err) {
+                } catch {
                   ctx.alert("Something went wrong while revoking access.");
                 } finally {
                   setIsRevoking(false);
@@ -115,14 +97,14 @@ export default function ConfigScreen({ ctx }: Props) {
                 await ctx.updatePluginParameters(values);
                 reset(values);
                 ctx.notice("Settings updated successfully!");
-              } catch (err) {
+              } catch {
                 ctx.alert("Something went wrong while saving settings.");
               }
             })}
           >
             <p>
-              Assets are imported as a web-sized derivative from Frontify's CDN
-              (not the raw original)
+              Assets are imported as a web-sized derivative from Frontify's CDN (not the raw
+              original)
             </p>
             <FieldGroup>
               <Controller
@@ -141,9 +123,7 @@ export default function ConfigScreen({ ctx }: Props) {
                       step: 1,
                       type: "number",
                     }}
-                    onChange={(value) =>
-                      field.onChange(Number.parseInt(value, 10))
-                    }
+                    onChange={(value) => field.onChange(Number.parseInt(value, 10))}
                   />
                 )}
               />
@@ -161,9 +141,7 @@ export default function ConfigScreen({ ctx }: Props) {
                     textInputProps={{
                       type: "number",
                     }}
-                    onChange={(value) =>
-                      field.onChange(Number.parseInt(value, 10))
-                    }
+                    onChange={(value) => field.onChange(Number.parseInt(value, 10))}
                   />
                 )}
               />
@@ -178,9 +156,7 @@ export default function ConfigScreen({ ctx }: Props) {
                     label="Format"
                     hint="Default WebP"
                     selectInputProps={{
-                      value: FORMAT_OPTIONS.find(
-                        (opt) => opt.value === field.value,
-                      ),
+                      value: FORMAT_OPTIONS.find((opt) => opt.value === field.value),
                       options: FORMAT_OPTIONS,
                     }}
                     error={fieldState.error?.message}
@@ -189,9 +165,7 @@ export default function ConfigScreen({ ctx }: Props) {
                         field.onChange(option.value);
                       }
                     }}
-                    value={FORMAT_OPTIONS.find(
-                      (opt) => opt.value === field.value,
-                    )}
+                    value={FORMAT_OPTIONS.find((opt) => opt.value === field.value)}
                   />
                 )}
               />
@@ -229,7 +203,7 @@ export default function ConfigScreen({ ctx }: Props) {
                 token: newToken,
               });
               ctx.notice("You logged in successfully");
-            } catch (err) {
+            } catch {
               ctx.alert("Something went wrong");
             } finally {
               setIsAuthenticating(false);

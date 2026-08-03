@@ -46,16 +46,11 @@ export function normalizeConfigParameters(
   };
 }
 
-export function resolveAuthCredentials(
-  token: Token | null,
-): AuthCredentials | null {
+export function resolveAuthCredentials(token: Token | null): AuthCredentials | null {
   const bearerToken = token?.bearerToken;
-  const domain =
-    typeof bearerToken?.domain === "string" ? bearerToken.domain.trim() : "";
+  const domain = typeof bearerToken?.domain === "string" ? bearerToken.domain.trim() : "";
   const accessToken =
-    typeof bearerToken?.accessToken === "string"
-      ? bearerToken.accessToken.trim()
-      : "";
+    typeof bearerToken?.accessToken === "string" ? bearerToken.accessToken.trim() : "";
 
   if (!domain || !accessToken) {
     return null;
@@ -80,9 +75,7 @@ function resolveMaxWidth(value: unknown): number {
 }
 
 function resolveImageOutputFormat(value: unknown): ImportFormat {
-  return isImageOutputFormat(value)
-    ? value
-    : defaultConfigParameters.importSettings.format;
+  return isImageOutputFormat(value) ? value : defaultConfigParameters.importSettings.format;
 }
 
 function isImageOutputFormat(value: unknown): value is ImportFormat {

@@ -1,9 +1,4 @@
-export type SortValue =
-  | "RELEVANCE"
-  | "NEWEST"
-  | "OLDEST"
-  | "TITLE_ASCENDING"
-  | "TITLE_DESCENDING";
+export type SortValue = "RELEVANCE" | "NEWEST" | "OLDEST" | "TITLE_ASCENDING" | "TITLE_DESCENDING";
 
 export type SortOption = {
   label: string;
