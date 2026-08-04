@@ -1,5 +1,11 @@
 # datocms-plugin-frontify-asset-source
 
+## 0.3.2
+
+### Patch Changes
+
+- 081ecca: Refactor workflows
+
 ## 0.3.1
 
 ### Patch Changes
