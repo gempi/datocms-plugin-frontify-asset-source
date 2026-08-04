@@ -1,5 +1,11 @@
 # datocms-plugin-frontify-asset-source
 
+## 0.3.1
+
+### Patch Changes
+
+- 7b62928: Add changeset workflow
+
 ## 0.3.0
 
 ### Minor Changes

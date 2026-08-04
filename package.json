@@ -1,6 +1,6 @@
 {
   "name": "datocms-plugin-frontify-asset-source",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": false,
   "description": "Insert photos from your Frontify Account directly inside of your DatoCMS project",
   "keywords": [
