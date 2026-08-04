@@ -24,7 +24,8 @@
     "lint": "oxlint  --fix",
     "prepare": "simple-git-hooks",
     "fmt": "oxfmt",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release": "pnpm build && changeset publish"
   },
   "dependencies": {
     "@frontify/frontify-authenticator": "^2.0.1",
