@@ -36,7 +36,7 @@ jobs:
 
       - name: Select Changesets mode
         id: select-mode
-        uses: changesets/action/select-mode@v2
+        uses: changesets/action/select-mode@v1
 
   version:
     if: needs.select-mode.outputs.mode == 'version'
@@ -67,7 +67,7 @@ jobs:
 
       - name: Version packages
         id: version
-        uses: changesets/action/version@v2
+        uses: changesets/action/version@v1
 
   pack:
     if: needs.select-mode.outputs.mode == 'publish'
@@ -100,7 +100,7 @@ jobs:
 
       - name: Pack packages
         id: pack
-        uses: changesets/action/pack@v2
+        uses: changesets/action/pack@v1
         with:
           publish-plan-artifact-id: ${{ needs.select-mode.outputs.publish-plan-artifact-id }}
 
@@ -129,6 +129,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Publish packages
-        uses: changesets/action/publish@v2
+        uses: changesets/action/publish@v1
         with:
           pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}
