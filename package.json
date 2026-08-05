@@ -22,7 +22,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "oxlint  --fix",
-    "prepare": "test -z \"$CI\" && simple-git-hooks || true",
+    "prepare": "simple-git-hooks",
     "fmt": "oxfmt",
     "typecheck": "tsc --noEmit",
     "release": "pnpm build && changeset publish"
