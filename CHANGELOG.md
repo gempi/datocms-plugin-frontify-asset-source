@@ -1,5 +1,11 @@
 # datocms-plugin-frontify-asset-source
 
+## 0.3.3
+
+### Patch Changes
+
+- 0151f20: Remove tsbuildinfo
+
 ## 0.3.2
 
 ### Patch Changes
