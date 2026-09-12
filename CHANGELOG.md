@@ -1,5 +1,12 @@
 # datocms-plugin-frontify-asset-source
 
+## 0.3.4
+
+### Patch Changes
+
+- 39cac04: Migrate Vite from v7 to v8
+- fe992c4: Migrate Changesets from v2 to v3
+
 ## 0.3.3
 
 ### Patch Changes
