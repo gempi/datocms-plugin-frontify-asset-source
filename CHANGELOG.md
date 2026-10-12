@@ -1,5 +1,11 @@
 # datocms-plugin-frontify-asset-source
 
+## 0.3.5
+
+### Patch Changes
+
+- df7c594: Update dependencies and fix TypeScript build errors when plugin parameters are null
+
 ## 0.3.4
 
 ### Patch Changes
