@@ -19,7 +19,7 @@ const FORMAT_OPTIONS = [
 ];
 
 export default function ConfigScreen({ ctx }: Props) {
-  const parameters = normalizeConfigParameters(ctx.plugin.attributes.parameters);
+  const parameters = normalizeConfigParameters(ctx.plugin.attributes.parameters ?? {});
   const token = parameters.token;
 
   const [isAuthenticating, setIsAuthenticating] = useState(false);

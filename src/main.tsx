@@ -28,7 +28,7 @@ connect({
     ];
   },
   renderAssetSource(_sourceId: string, ctx: RenderAssetSourceCtx) {
-    const parameters = normalizeConfigParameters(ctx.plugin.attributes.parameters);
+    const parameters = normalizeConfigParameters(ctx.plugin.attributes.parameters ?? {});
     const auth = resolveAuthCredentials(parameters.token);
 
     if (!auth) {

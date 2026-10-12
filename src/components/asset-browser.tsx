@@ -139,7 +139,7 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
       return;
     }
 
-    const { importSettings } = normalizeConfigParameters(ctx.plugin.attributes.parameters);
+    const { importSettings } = normalizeConfigParameters(ctx.plugin.attributes.parameters ?? {});
 
     const uploads = assets.map((asset) =>
       buildUpload(asset, importSettings, ctx.site.attributes.locales),
