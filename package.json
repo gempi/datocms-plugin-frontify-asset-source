@@ -46,7 +46,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "baseline-browser-mapping": "^2.11.28",
-    "oxfmt": "^0.61.0",
+    "oxfmt": "^0.74.0",
     "oxlint": "^1.87.0",
     "simple-git-hooks": "^2.14.0",
     "typescript": "^6.0.3",
