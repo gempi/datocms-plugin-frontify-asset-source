@@ -1,5 +1,11 @@
 # datocms-plugin-frontify-asset-source
 
+## 0.3.6
+
+### Patch Changes
+
+- 2f49efc: Upgrade oxfmt to fix critical tinypool prototype pollution advisories (dev dependency only)
+
 ## 0.3.5
 
 ### Patch Changes
