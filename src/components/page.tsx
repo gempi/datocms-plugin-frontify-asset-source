@@ -176,8 +176,6 @@ const styles = stylex.create({
     position: "relative",
     cursor: "pointer",
     outlineOffset: -3,
-    contentVisibility: "auto",
-    containIntrinsicSize: "auto 200px",
     borderRadius: "4px",
     boxShadow: "0 0 0 1px var(--color--border)",
   },
