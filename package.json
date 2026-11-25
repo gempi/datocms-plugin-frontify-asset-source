@@ -29,28 +29,28 @@
   },
   "dependencies": {
     "@frontify/frontify-authenticator": "^2.1.0",
-    "@stylexjs/stylex": "^0.19.1",
-    "@stylexjs/unplugin": "^0.19.1",
+    "@stylexjs/stylex": "^0.19.2",
+    "@stylexjs/unplugin": "^0.19.2",
     "@types/node": "^24.19.2",
     "datocms-plugin-sdk": "^2.5.0",
     "datocms-react-ui": "^2.5.1",
-    "gql.tada": "^1.11.4",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "react-hook-form": "^7.90.0",
+    "gql.tada": "^1.11.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-hook-form": "^7.92.0",
     "urql": "^5.0.4"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
-    "@types/react": "^19.3.0",
+    "@types/react": "^19.3.1",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
-    "baseline-browser-mapping": "^2.11.28",
-    "oxfmt": "^0.74.0",
-    "oxlint": "^1.87.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "baseline-browser-mapping": "^2.11.39",
+    "oxfmt": "^0.80.0",
+    "oxlint": "^1.95.0",
     "simple-git-hooks": "^2.14.0",
     "typescript": "^6.0.3",
-    "vite": "^8.3.4"
+    "vite": "^8.3.8"
   },
   "simple-git-hooks": {
     "pre-commit": "npm run lint && npm run fmt"
