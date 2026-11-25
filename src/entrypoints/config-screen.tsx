@@ -49,12 +49,14 @@ export default function ConfigScreen({ ctx }: Props) {
                   await ctx.updatePluginParameters({
                     ...parameters,
                     token: newToken,
+                    tokenObtainedAt: Date.now(),
                   });
                   ctx.notice("Successfully received a new token!");
                 } catch {
                   await ctx.updatePluginParameters({
                     ...parameters,
                     token: null,
+                    tokenObtainedAt: null,
                   });
                   ctx.alert("Something went wrong. Please login again!");
                 } finally {
@@ -78,6 +80,7 @@ export default function ConfigScreen({ ctx }: Props) {
                   await ctx.updatePluginParameters({
                     ...parameters,
                     token: null,
+                    tokenObtainedAt: null,
                   });
                   ctx.notice("Successfully revoked your token!");
                 } catch {
@@ -94,7 +97,12 @@ export default function ConfigScreen({ ctx }: Props) {
           <Form
             onSubmit={handleSubmit(async (values) => {
               try {
-                await ctx.updatePluginParameters(values);
+                // Only take the import settings from the form: its token is the one from when the
+                // screen was opened and would overwrite a token refreshed in the meantime.
+                await ctx.updatePluginParameters({
+                  ...parameters,
+                  importSettings: values.importSettings,
+                });
                 reset(values);
                 ctx.notice("Settings updated successfully!");
               } catch {
@@ -201,6 +209,7 @@ export default function ConfigScreen({ ctx }: Props) {
               await ctx.updatePluginParameters({
                 ...parameters,
                 token: newToken,
+                tokenObtainedAt: Date.now(),
               });
               ctx.notice("You logged in successfully");
             } catch {
