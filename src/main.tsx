@@ -2,8 +2,7 @@ import { connect, RenderAssetSourceCtx } from "datocms-plugin-sdk";
 import { render } from "./utils/render";
 import ConfigScreen from "./entrypoints/config-screen";
 import "datocms-react-ui/styles.css";
-import AssetBrowser from "./components/asset-browser";
-import { cacheExchange, Client, fetchExchange, Provider } from "urql";
+import AssetSource from "./components/asset-source";
 import { normalizeConfigParameters, resolveAuthCredentials } from "./utils/config";
 
 connect({
@@ -36,24 +35,6 @@ connect({
       return null;
     }
 
-    const client = new Client({
-      url: `https://${auth.domain}/graphql`,
-      exchanges: [cacheExchange, fetchExchange],
-      preferGetMethod: false,
-      fetchOptions: () => {
-        return {
-          headers: {
-            "X-Frontify-Beta": "enabled",
-            Authorization: `Bearer ${auth.accessToken}`,
-          },
-        };
-      },
-    });
-
-    render(
-      <Provider value={client}>
-        <AssetBrowser ctx={ctx} />
-      </Provider>,
-    );
+    render(<AssetSource ctx={ctx} />);
   },
 });

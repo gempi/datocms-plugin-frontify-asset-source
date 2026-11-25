@@ -110,7 +110,9 @@ export default function AssetBrowser({ ctx }: AssetBrowserProps) {
 
   useEffect(() => {
     if (error) {
-      ctx.alert(error.message);
+      ctx.alert(
+        `${error.message} If this persists, the Frontify access token may have expired: ask an administrator to click "Refresh token" in the plugin settings.`,
+      );
     }
   }, [error, ctx]);
 

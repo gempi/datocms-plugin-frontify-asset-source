@@ -11,11 +11,14 @@ export type ImportSettings = {
 
 type ConfigParameters = {
   token?: Token | null;
+  tokenObtainedAt?: number | null;
   importSettings?: ImportSettings;
 };
 
 export type NormalizedConfigParameters = {
   token: Token | null;
+  // Unix time in ms when the token was issued. Null for tokens stored before it was tracked.
+  tokenObtainedAt: number | null;
   importSettings: ImportSettings;
 };
 
@@ -26,6 +29,7 @@ export type AuthCredentials = {
 
 const defaultConfigParameters: NormalizedConfigParameters = {
   token: null,
+  tokenObtainedAt: null,
   importSettings: {
     format: "webp",
     maxWidth: 1920,
@@ -38,12 +42,54 @@ export function normalizeConfigParameters(
 ): NormalizedConfigParameters {
   return {
     token: parameters.token ?? null,
+    tokenObtainedAt:
+      typeof parameters.tokenObtainedAt === "number" && Number.isFinite(parameters.tokenObtainedAt)
+        ? parameters.tokenObtainedAt
+        : null,
     importSettings: {
       format: resolveImageOutputFormat(parameters.importSettings?.format),
       maxWidth: resolveMaxWidth(parameters.importSettings?.maxWidth),
       quality: resolveImageQuality(parameters.importSettings?.quality),
     },
   };
+}
+
+function resolveTokenLifetimeMs(token: Token): number | null {
+  const expiresIn = token.bearerToken?.expiresIn;
+  return typeof expiresIn === "number" && Number.isFinite(expiresIn) && expiresIn > 0
+    ? expiresIn * 1000
+    : null;
+}
+
+// Refresh once half of the token lifetime has passed, or when the issue time is unknown.
+export function isTokenRefreshDue(
+  { token, tokenObtainedAt }: NormalizedConfigParameters,
+  now: number,
+): boolean {
+  if (!token) {
+    return false;
+  }
+
+  const lifetimeMs = resolveTokenLifetimeMs(token);
+
+  if (tokenObtainedAt === null || lifetimeMs === null) {
+    return true;
+  }
+
+  return now - tokenObtainedAt >= lifetimeMs / 2;
+}
+
+export function isTokenExpired(
+  { token, tokenObtainedAt }: NormalizedConfigParameters,
+  now: number,
+): boolean {
+  if (!token || tokenObtainedAt === null) {
+    return false;
+  }
+
+  const lifetimeMs = resolveTokenLifetimeMs(token);
+
+  return lifetimeMs !== null && now - tokenObtainedAt >= lifetimeMs;
 }
 
 export function resolveAuthCredentials(token: Token | null): AuthCredentials | null {
