@@ -1,5 +1,13 @@
 # datocms-plugin-frontify-asset-source
 
+## 0.3.7
+
+### Patch Changes
+
+- 0721867: Renew the Frontify access token automatically when an administrator opens the asset browser after half of its lifetime, show a clear message instead of a GraphQL error when it has expired, and stop the settings form from overwriting a refreshed token
+- bef4a7b: Fix "Load more" button being cut off after a search because the modal height was measured before the asset tiles reached their rendered size
+- bb74c14: Upgrade dependencies to their latest minor and patch versions
+
 ## 0.3.6
 
 ### Patch Changes
